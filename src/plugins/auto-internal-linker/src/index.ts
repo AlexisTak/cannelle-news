@@ -112,14 +112,36 @@ export function createPlugin() {
 				},
 			},
 
+			/**
+			 * Purge, corbeille comprise.
+			 *
+			 * Ne pas filtrer sur `event.permanent` : une mise à la corbeille émet
+			 * ce hook avec `permanent: false` et **n'émet pas**
+			 * `content:afterUnpublish` (`emdash-runtime.ts:2968` contre `:3055`).
+			 * Sans purge ici, l'article resterait une cible de liens alors que son
+			 * URL rend un 404 — exactement le contraire du but du plugin.
+			 */
 			"content:afterDelete": {
 				priority: 100,
 				errorPolicy: "continue",
 				timeout: 5000,
 				handler: async (event, ctx) => {
-					if (event.permanent) {
-						await createKeywordIndexStore(ctx).purgeTarget(event.id);
-					}
+					if (event.id) await createKeywordIndexStore(ctx).purgeTarget(event.id);
+				},
+			},
+
+			/**
+			 * Contrepartie de la purge ci-dessus : sortir un article de la
+			 * corbeille doit le rendre à nouveau ciblable, sans attendre qu'un
+			 * rédacteur pense à le rouvrir pour l'enregistrer.
+			 */
+			"content:afterRestore": {
+				priority: 100,
+				errorPolicy: "continue",
+				timeout: 5000,
+				handler: async (event, ctx) => {
+					if (event.content.status !== "published") return;
+					await indexEntry(ctx, event.content, event.collection);
 				},
 			},
 

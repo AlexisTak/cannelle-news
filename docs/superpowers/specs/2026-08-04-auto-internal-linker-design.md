@@ -249,7 +249,8 @@ Le cahier des charges initial citait `/article/{slug}` ; le site sert `/posts/{s
 | `content:afterPublish` | `replaceForTarget(targetId, derive(entry))` — purge puis insertion |
 | `content:afterSave`, si l'article est déjà publié | Même action. Sans ce second déclencheur, corriger le titre ou les mots-clés manuels d'un article **déjà en ligne** laisserait l'index sur l'ancienne version : `afterPublish` ne se déclenche qu'à la transition de statut, pas à chaque enregistrement. |
 | `content:afterUnpublish` | `purgeTarget(targetId)` |
-| `content:afterDelete` | `purgeTarget(targetId)` |
+| `content:afterDelete` | `purgeTarget(targetId)`, **sans filtrer sur `event.permanent`**. Une mise à la corbeille émet ce hook avec `permanent: false` et n'émet **pas** `content:afterUnpublish` (`emdash-runtime.ts:2968` contre `:3055`). Ne purger que les suppressions définitives laisserait un article corbeillé cible de liens vers une URL qui rend un 404. |
+| `content:afterRestore`, si l'article est publié | Réindexation. Contrepartie de la ligne précédente : sortir un article de la corbeille doit le rendre ciblable sans attendre qu'un rédacteur pense à le rouvrir. |
 | route `rebuild` | Balayage paginé de `ctx.content.list({ where: { status: "published" } })` sur toutes les collections analysées, puis `replaceForTarget` article par article |
 
 Les deux premiers déclencheurs appellent la même fonction d'indexation, qui vérifie elle-même que l'article est publié et possède un slug. Un déclenchement en double sur un même enregistrement est sans conséquence : `replaceForTarget` est idempotent.
@@ -401,7 +402,7 @@ Rejouer le hook ne double rien : la règle « une seule occurrence liée par cib
 
 | Chemin | Politique |
 | --- | --- |
-| `content:afterPublish` / `afterUnpublish` / `afterDelete` | `errorPolicy: "continue"`, `timeout: 5000` |
+| `content:afterPublish` / `afterSave` / `afterUnpublish` / `afterDelete` / `afterRestore` | `errorPolicy: "continue"`, `timeout: 5000` |
 | `content:beforeSave` | `try`/`catch` interne, `ctx.log.error`, retourne le `content` **intact** |
 | route `suggest`, index vide | `{ suggestions: [], indexEmpty: true }` → le widget propose « Reconstruire l'index » |
 | route `suggest`, article introuvable | Erreur 404 explicite, affichée dans le widget |
