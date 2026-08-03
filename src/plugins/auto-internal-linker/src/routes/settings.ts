@@ -18,8 +18,12 @@ export const settingsInputSchema = z.object({
 					extracted: z.boolean().optional(),
 				})
 				.optional(),
-			urlPatterns: z.record(z.string()).optional(),
-			siteUrl: z.string().url().nullable().optional(),
+			urlPatterns: z.record(z.string(), z.string()).optional(),
+			siteUrl: z
+				.string()
+				.regex(/^https?:\/\/.+/, "L'URL doit commencer par http:// ou https://")
+				.nullable()
+				.optional(),
 		})
 		.optional(),
 });

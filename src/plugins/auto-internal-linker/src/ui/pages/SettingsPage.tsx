@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { LinkerConfig } from "../../domain/config";
 import { DEFAULT_CONFIG } from "../../domain/config";
 import { Button, Section, Status, useAsyncTask } from "../components/Primitives";
-import { errorMessage, fetchLinkerSettings, rebuildIndex, saveLinkerSettings } from "../api";
+import { fetchLinkerSettings, rebuildIndex, saveLinkerSettings } from "../api";
 import styles from "../styles/Linker.module.css";
 
 /**

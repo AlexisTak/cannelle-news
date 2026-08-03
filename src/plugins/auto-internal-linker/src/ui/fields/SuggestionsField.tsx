@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { EMPTY_FIELD_VALUE, type LinkerFieldValue } from "../../domain/suggestion";
 import type { Suggestion } from "../../domain/suggestion";
 import { readEntryRef } from "../entry-ref";
-import { errorMessage, fetchLinkerSettings, fetchSuggestions, rebuildIndex } from "../api";
-import { Button, formatVersion, Section, Status, useAsyncTask } from "../components/Primitives";
+import { fetchSuggestions, rebuildIndex } from "../api";
+import type { RebuildOutput } from "../../routes/rebuild";
+import type { SuggestOutput } from "../../routes/suggest";
+import { Button, formatVersion, Section, Status, useAsyncTask, type AsyncTask } from "../components/Primitives";
 import styles from "../styles/Linker.module.css";
 
 /**
@@ -24,7 +26,7 @@ export interface PluginFieldProps {
 
 export function SuggestionsField({ value, onChange, label, id }: PluginFieldProps) {
 	const [entry] = useState(() => readEntryRef());
-	const fieldValue = useMemo(() => readFieldValue(value), [value]);
+	const fieldValue = useMemo(() => readFieldValues(value), [value]);
 	const [draft, setDraft] = useState(fieldValue);
 	const [output, setOutput] = useState<{
 		suggestions: Suggestion[];
@@ -200,10 +202,16 @@ export function SuggestionsField({ value, onChange, label, id }: PluginFieldProp
 												<p
 													id={`${id}-${suggestion.targetId}-ctx`}
 													className={styles.context}
-													dangerouslySetInnerHTML={{
-														__html: highlightContext(suggestion.context, suggestion.keyword),
-													}}
-												/>
+												>
+													{highlightContext(suggestion.context, suggestion.keyword)}
+												</p>
+												<Button
+													onClick={() => ignoreSuggestion(suggestion)}
+													disabled={task.busy}
+													title="Ne plus proposer ce mot-clé pour cet article"
+												>
+													Ignorer
+												</Button>
 											</div>
 										</li>
 									);
@@ -240,14 +248,14 @@ export function SuggestionsField({ value, onChange, label, id }: PluginFieldProp
 }
 
 async function rebuildAndAnalyze(
-	task: ReturnType<typeof useAsyncTask>,
+	task: AsyncTask<SuggestOutput | RebuildOutput | null>,
 	setOutput: React.Dispatch<
 		React.SetStateAction<{
 			suggestions: Suggestion[];
 			indexEmpty: boolean;
 			analyzedAt: string;
 		} | null>
-	&gt;,
+	>,
 ) {
 	task.reset();
 	const rebuild = await task.run(() => rebuildIndex());
@@ -255,7 +263,7 @@ async function rebuildAndAnalyze(
 	const entry = readEntryRef();
 	if (!entry) return;
 	const result = await task.run(() => fetchSuggestions({ collection: entry.collection, id: entry.id }));
-	if (result) setOutput(result);
+	if (result) setOutput(result as SuggestOutput);
 }
 
 function mergeAccepted(
@@ -285,10 +293,6 @@ function readFieldValues(raw: unknown): LinkerFieldValue {
 		),
 		ignored: value.ignored.filter((i) => typeof i === "string" && i.trim()),
 	};
-}
-
-function readFieldValue(raw: unknown): LinkerFieldValue {
-	return readFieldValues(raw);
 }
 
 /**

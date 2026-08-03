@@ -39,6 +39,24 @@
 					"slug": "excerpt",
 					"label": "Excerpt",
 					"type": "text"
+				},
+				{
+					"slug": "tldr",
+					"label": "TL;DR",
+					"type": "json",
+					"widget": "ai-editorial-assistant:tldr"
+				},
+				{
+					"slug": "ai_assistant",
+					"label": "Assistant IA",
+					"type": "json",
+					"widget": "ai-editorial-assistant:panel"
+				},
+				{
+					"slug": "internal_links",
+					"label": "Maillage interne",
+					"type": "json",
+					"widget": "auto-internal-linker:suggestions"
 				}
 			]
 		},
