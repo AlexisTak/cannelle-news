@@ -1,0 +1,28 @@
+{
+	"entryId": "fr-ia-001",
+	"collection": "posts",
+	"slug": "ia-generative-recherche-scientifique",
+	"locale": "fr",
+	"title": "L'IA générative transforme la recherche scientifique",
+	"metaDescription": "L'intelligence artificielle générative bouleverse la recherche scientifique. Découvrez les risques, les arnaques et les outils open source du domaine.",
+	"canonical": "https://cannelle.news/posts/ia-generative-recherche-scientifique",
+	"excerpt": "Les modèles de langue changent la façon de chercher, résumer et publier.",
+	"featuredImage": { "src": "/images/ai-lab.jpg", "alt": "Laboratoire d'IA" },
+	"plainText": "L'intelligence artificielle générative transforme la recherche scientifique. Des modèles comme GPT-4 ou Mistral permettent de résumer des milliers d'articles en quelques minutes. Cependant, cette accélération soulève des questions. Les chercheurs craignent la contamination des bases de données, la propagation de fausses citations et le biais algorithmique. Le projet OpenAlex propose une alternative open source pour cartographier la littérature scientifique. Les revues commencent à exiger la déclaration d'usage de l'IA. Dans le domaine de la cybersécurité, les attaquants exploitent ces modèles pour créer des hameçonnages personnalisés. Les journalistes doivent vérifier les sources, croiser les données et privilégier les publications en accès ouvert. L'avenir de la science dépendra de notre capacité à garder le contrôle humain sur les machines.",
+	"headings": [
+		{ "level": 2, "text": "Les modèles de langue comme assistants de recherche" },
+		{ "level": 3, "text": "Risques de pollution bibliographique" },
+		{ "level": 3, "text": "Open source contre modèles fermés" },
+		{ "level": 2, "text": "Implications pour la cybersécurité" },
+		{ "level": 3, "text": "Arnaques et hameçonnage automatisé" }
+	],
+	"links": [
+		{ "href": "https://example.com/openalex", "internal": false, "text": "OpenAlex" },
+		{ "href": "/posts/mistral-ai", "internal": true, "text": "Mistral" },
+		{ "href": "/posts/cybersecurite-2024", "internal": true, "text": "cybersécurité" }
+	],
+	"images": [
+		{ "src": "/images/ai-lab.jpg", "alt": "Laboratoire d'IA" },
+		{ "src": "/images/graph-papers.png", "alt": null }
+	]
+}

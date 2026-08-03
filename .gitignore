@@ -4,6 +4,13 @@ dist
 uploads
 data.db
 
+# Local dev state (miniflare D1/KV/cache) — machine-specific, never shared
+.wrangler/
+
+# Agent tooling: local settings and worktree copies of this repo
+.claude/
+.playwright-mcp/
+
 # Environment / Wrangler secrets
 .env
 .env.*

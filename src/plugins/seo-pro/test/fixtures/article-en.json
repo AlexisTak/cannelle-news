@@ -1,0 +1,23 @@
+{
+	"entryId": "en-ai-001",
+	"collection": "posts",
+	"slug": "generative-ai-scientific-research",
+	"locale": "en",
+	"title": "Generative AI reshapes scientific research",
+	"metaDescription": "Generative AI is changing how scientists search, summarize, and write. Learn about open-source tools, citation risks, and cybersecurity threats today.",
+	"canonical": "https://cannelle.news/posts/generative-ai-scientific-research",
+	"excerpt": "Language models change how scientists search, summarise and publish.",
+	"featuredImage": null,
+	"plainText": "Generative artificial intelligence is reshaping scientific research. Large language models can summarize thousands of papers, suggest hypotheses, and draft manuscripts. Researchers save time but face new risks: fake citations, contaminated datasets, and algorithmic bias. Open-source projects such as OpenAlex provide transparent alternatives to proprietary indexes. Journals now require authors to disclose AI assistance. In cybersecurity, threat actors use generative models to craft personalized phishing emails. Journalists must verify claims, cite primary sources, and favor open-access studies. The future of science depends on maintaining human oversight of automated systems.",
+	"headings": [
+		{ "level": 2, "text": "Language models as research assistants" },
+		{ "level": 3, "text": "Citation pollution risks" },
+		{ "level": 2, "text": "Cybersecurity implications" }
+	],
+	"links": [
+		{ "href": "https://example.com/openalex", "internal": false, "text": "OpenAlex" },
+		{ "href": "/posts/open-access", "internal": true, "text": "open access" },
+		{ "href": "/posts/phishing-2024", "internal": true, "text": "phishing" }
+	],
+	"images": [{ "src": "/images/ai-lab.jpg", "alt": "AI laboratory" }]
+}

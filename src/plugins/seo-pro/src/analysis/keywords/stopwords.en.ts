@@ -1,0 +1,34 @@
+/**
+ * Mots vides anglais.
+ *
+ * Attention : plusieurs entrées existent aussi en français (« a », « on »,
+ * « son », « no », « en »). `detectLanguage` compare deux totaux, donc ces
+ * ambigus se neutralisent en grande partie ; ce sont les marqueurs exclusifs
+ * (« the », « of », « is » d'un côté ; « le », « des », « est » de l'autre)
+ * qui décident réellement.
+ */
+export const stopwordsEn = new Set([
+	"a", "about", "above", "after", "again", "against", "all", "am", "an", "and",
+	"any", "are", "as", "at",
+	"be", "because", "been", "before", "being", "below", "between", "both", "but",
+	"by",
+	"can", "cannot", "could",
+	"did", "do", "does", "doing", "down", "during",
+	"each", "few", "for", "from", "further",
+	"had", "has", "have", "having", "he", "her", "here", "hers", "herself", "him",
+	"himself", "his", "how",
+	"i", "if", "in", "into", "is", "it", "its", "itself",
+	"just",
+	"me", "more", "most", "my", "myself",
+	"no", "nor", "not", "now",
+	"of", "off", "on", "once", "only", "or", "other", "ought", "our", "ours",
+	"ourselves", "out", "over", "own",
+	"same", "she", "should", "so", "some", "such",
+	"than", "that", "the", "their", "theirs", "them", "themselves", "then",
+	"there", "these", "they", "this", "those", "through", "to", "too",
+	"under", "until", "up",
+	"very",
+	"was", "we", "were", "what", "when", "where", "which", "while", "who", "whom",
+	"why", "will", "with", "would",
+	"you", "your", "yours", "yourself", "yourselves",
+]);

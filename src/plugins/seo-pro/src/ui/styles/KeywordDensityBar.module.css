@@ -1,0 +1,40 @@
+.container {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	width: 100%;
+}
+
+.track {
+	position: relative;
+	flex: 1;
+	height: 0.5rem;
+	background: var(--color-kumo-fill, #e5e7eb);
+	border-radius: 9999px;
+	overflow: hidden;
+}
+
+/* Zone idéale 0.5-1.5 % sur une échelle allant jusqu'à 5 % : 10 % à 30 %. */
+.idealZone {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	background: var(--color-kumo-success-tint, #dcfce7);
+}
+
+.bar {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	background: var(--color-kumo-brand, #2563eb);
+	border-radius: 9999px;
+}
+
+.value {
+	font-size: 0.8125rem;
+	font-variant-numeric: tabular-nums;
+	color: var(--color-kumo-contrast, inherit);
+	min-width: 3.5rem;
+	text-align: right;
+}

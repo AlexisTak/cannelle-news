@@ -1,0 +1,41 @@
+.gauge {
+	position: relative;
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	width: fit-content;
+}
+
+.svg {
+	display: block;
+}
+
+/* La piste vide suit la ligne de l'admin : en thème sombre, un gris fixe
+   ressortirait comme une tache claire. */
+.track {
+	stroke: var(--color-kumo-line, #e5e7eb);
+}
+
+.score {
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1;
+	margin-top: -0.5rem;
+	color: var(--color-kumo-contrast, #1d2327);
+}
+
+.gauge[data-size="lg"] .score {
+	font-size: 2.25rem;
+}
+
+.gauge[data-size="sm"] .score {
+	font-size: 1.125rem;
+}
+
+.grade {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--color-kumo-contrast, #6b7280);
+	opacity: 0.7;
+}
