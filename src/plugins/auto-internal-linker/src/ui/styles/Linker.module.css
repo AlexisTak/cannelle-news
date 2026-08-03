@@ -1,0 +1,166 @@
+.root {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	font-size: 0.875rem;
+	color: var(--color-kumo-contrast, inherit);
+}
+
+.label {
+	font-weight: 600;
+	font-size: 0.875rem;
+}
+
+.hint {
+	font-size: 0.75rem;
+	color: var(--color-kumo-subtle, #6b7280);
+	margin: 0;
+}
+
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	padding: 0.75rem;
+	border: 1px solid var(--color-kumo-line, #e5e7eb);
+	border-radius: 0.5rem;
+}
+
+.sectionHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.sectionTitle {
+	font-weight: 600;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.button {
+	appearance: none;
+	cursor: pointer;
+	border: 1px solid var(--color-kumo-line, #e5e7eb);
+	border-radius: 0.375rem;
+	background: transparent;
+	color: inherit;
+	padding: 0.35rem 0.7rem;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	font-family: inherit;
+}
+
+.button:hover:not(:disabled) {
+	background: var(--color-kumo-muted, #f3f4f6);
+}
+
+.button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.button[data-variant="primary"] {
+	border-color: transparent;
+	background: var(--color-kumo-accent, #2563eb);
+	color: var(--color-kumo-accent-contrast, #ffffff);
+}
+
+.suggestions {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.suggestion {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+	padding: 0.5rem;
+	border-radius: 0.375rem;
+	border: 1px solid transparent;
+}
+
+.suggestion:hover {
+	border-color: var(--color-kumo-line, #e5e7eb);
+}
+
+.suggestion input[type="checkbox"] {
+	margin-top: 0.15rem;
+	flex: none;
+}
+
+.suggestionBody {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	flex: 1;
+	min-width: 0;
+}
+
+.suggestionText {
+	line-height: 1.4;
+}
+
+.suggestionText strong {
+	color: var(--color-kumo-accent, #2563eb);
+}
+
+.context {
+	font-size: 0.75rem;
+	color: var(--color-kumo-subtle, #6b7280);
+	white-space: pre-wrap;
+}
+
+.context mark {
+	background: var(--color-kumo-accent-muted, #dbeafe);
+	color: inherit;
+	border-radius: 0.125rem;
+	padding: 0 0.125rem;
+}
+
+.empty {
+	font-size: 0.8125rem;
+	color: var(--color-kumo-subtle, #6b7280);
+	font-style: italic;
+}
+
+.status {
+	font-size: 0.75rem;
+	color: var(--color-kumo-subtle, #6b7280);
+}
+
+.status[data-tone="error"] {
+	color: var(--color-kumo-danger, #dc2626);
+}
+
+.status[data-tone="success"] {
+	color: var(--color-kumo-success, #16a34a);
+}
+
+.input,
+.textarea {
+	width: 100%;
+	box-sizing: border-box;
+	font: inherit;
+	color: inherit;
+	background: transparent;
+	border: 1px solid var(--color-kumo-line, #e5e7eb);
+	border-radius: 0.375rem;
+	padding: 0.4rem 0.5rem;
+}
+
+.textarea {
+	resize: vertical;
+	min-height: 3.5rem;
+	line-height: 1.45;
+}
