@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:arxiv="http://arxiv.org/schemas/atom">
+  <entry>
+    <id>http://arxiv.org/abs/2301.12345v1</id>
+    <title>Test Paper on Cannelle-News Research</title>
+    <summary>This paper investigates the impact of cinnamon on neural network training. We find a 0.001% improvement over baseline.</summary>
+    <published>2023-01-15T00:00:00Z</published>
+    <author><name>Alice Dupont</name></author>
+    <author><name>Bob Martin</name></author>
+  </entry>
+</feed>

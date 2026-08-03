@@ -1,0 +1,17 @@
+{
+  "status": "ok",
+  "message": {
+    "DOI": "10.1038/nature12373",
+    "title": ["Attention Is All You Need in Practice"],
+    "author": [
+      { "given": "Alice", "family": "Dupont" },
+      { "given": "Bob", "family": "Martin" }
+    ],
+    "issued": { "date-parts": [[2023, 1, 15]] },
+    "abstract": "<jats:p>This <jats:bold>study</jats:bold> examines transformers.</jats:p>",
+    "link": [
+      { "URL": "https://example.com/landing", "content-type": "text/html" },
+      { "URL": "https://example.com/paper.pdf", "content-type": "application/pdf" }
+    ]
+  }
+}

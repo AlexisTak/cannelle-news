@@ -1,0 +1,34 @@
+---
+import type { ResearchPaperBlock } from "../lib/types";
+
+interface Props {
+  blocks: Array<{ _type: string }>;
+}
+
+const { blocks } = Astro.props;
+const papers = (blocks as unknown as Array<ResearchPaperBlock>)
+  .filter((b) => b._type === "researchPaper" && b.title.length > 0);
+
+if (papers.length === 0) return null;
+
+const seen = new Set<string>();
+const unique = papers.filter((p) => {
+  if (seen.has(p.sourceId)) return false;
+  seen.add(p.sourceId);
+  return true;
+});
+
+const jsonLd = unique.map((p) => ({
+  "@context": "https://schema.org",
+  "@type": "ScholarlyArticle",
+  headline: p.title,
+  name: p.title,
+  author: p.authors.map((name) => ({ "@type": "Person", name })),
+  datePublished: p.publishedDate ?? undefined,
+  abstract: p.abstract || undefined,
+  url: p.url,
+  sameAs: p.doi ? [`https://doi.org/${p.doi}`] : undefined,
+}));
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />

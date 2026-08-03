@@ -1,0 +1,25 @@
+{
+  "name": "@cannelle/plugin-research-paper-embed",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./admin": "./src/admin/RefreshButton.tsx",
+    "./astro": "./src/astro/index.ts"
+  },
+  "peerDependencies": {
+    "emdash": ">=0.30.0",
+    "react": "^19.0.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.0",
+    "striptags": "^3.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.0.0"
+  }
+}
