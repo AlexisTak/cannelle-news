@@ -22,10 +22,7 @@
 	--color-rule: #dfdfdf;             /* filets décoratifs             */
 	--color-border-interactive: #8f8f8f; /* 3,2:1 — WCAG 1.4.11         */
 
-	/* Familles — les variables sont produites par l'API Fonts d'Astro */
-	--font-display: var(--font-display-fallback, Georgia, serif);
-	--font-body: var(--font-body-fallback, Georgia, serif);
-	--font-meta: var(--font-meta-fallback, system-ui, sans-serif);
+	/* Familles — injectées par <Font> dans Base.astro */
 
 	/* Échelle typographique */
 	--fs-display: clamp(2.25rem, 1.6rem + 3.2vw, 3.75rem);
