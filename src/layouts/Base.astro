@@ -9,6 +9,8 @@ import {
 import { createPublicPageContext } from "emdash/page";
 import LiveSearch from "emdash/ui/search";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import { Font } from "astro:assets";
+import "../styles/theme.css";
 
 interface Props {
 	title: string;
@@ -42,13 +44,16 @@ const pageCtx = createPublicPageContext({
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{fullTitle}</title>
 		{pageDescription && <meta name="description" content={pageDescription} />}
 		{canonical && <link rel="canonical" href={canonical} />}
+		<Font cssVariable="--font-body" preload />
+		<Font cssVariable="--font-display" />
+		<Font cssVariable="--font-meta" />
 		<EmDashHead page={pageCtx} />
 	</head>
 	<body>

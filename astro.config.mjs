@@ -1,7 +1,7 @@
 import cloudflare from "@astrojs/cloudflare";
 import react from "@astrojs/react";
 import { d1, r2 } from "@emdash-cms/cloudflare";
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import emdash from "emdash/astro";
 
 import { aiEditorialAssistantPlugin } from "./src/plugins/ai-editorial-assistant/src/index.ts";
@@ -17,6 +17,36 @@ export default defineConfig({
 		layout: "constrained",
 		responsiveStyles: true,
 	},
+	fonts: [
+		{
+			provider: fontProviders.google(),
+			name: "Playfair Display",
+			cssVariable: "--font-display",
+			weights: [700, 800],
+			subsets: ["latin", "latin-ext"],
+			display: "swap",
+			fallbacks: ["Georgia", "Times New Roman", "serif"],
+		},
+		{
+			provider: fontProviders.google(),
+			name: "Source Serif 4",
+			cssVariable: "--font-body",
+			weights: [400, 600],
+			styles: ["normal", "italic"],
+			subsets: ["latin", "latin-ext"],
+			display: "swap",
+			fallbacks: ["Georgia", "serif"],
+		},
+		{
+			provider: fontProviders.google(),
+			name: "Inter",
+			cssVariable: "--font-meta",
+			weights: [500, 600, 700],
+			subsets: ["latin", "latin-ext"],
+			display: "swap",
+			fallbacks: ["system-ui", "sans-serif"],
+		},
+	],
 	integrations: [
 		react(),
 		emdash({
