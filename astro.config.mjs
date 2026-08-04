@@ -38,16 +38,12 @@ export default defineConfig({
 		optimizeDeps: {
 			include: [
 				"@cannelle/plugin-ai-editorial-assistant",
-				"@cannelle/plugin-ai-editorial-assistant/admin",
 				"@cannelle/plugin-auto-internal-linker",
-				"@cannelle/plugin-auto-internal-linker/admin",
 				"@cannelle/plugin-glossary-cards",
-				"@cannelle/plugin-glossary-cards/admin",
 				"@cannelle/plugin-glossary-cards/astro",
 				"@cannelle/plugin-research-paper-embed",
-				"@cannelle/plugin-research-paper-embed/admin",
+				"@cannelle/plugin-research-paper-embed/astro",
 				"@cannelle/plugin-seo-pro",
-				"@cannelle/plugin-seo-pro/admin",
 			],
 		},
 		ssr: {
