@@ -1,0 +1,45 @@
+---
+import { formatArticleDate } from "../utils/format";
+
+interface Props {
+	date?: Date | null;
+	align?: "start" | "center";
+}
+
+const { date, align = "start" } = Astro.props;
+---
+
+<p class:list={["meta-line", `is-${align}`]}>
+	{
+		date && (
+			<time datetime={date.toISOString()}>{formatArticleDate(date)}</time>
+		)
+	}
+	<slot />
+</p>
+
+<style>
+	.meta-line {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-2);
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		font-weight: 500;
+		line-height: var(--lh-meta);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink-muted);
+	}
+
+	.is-center {
+		justify-content: center;
+	}
+
+	/* Le séparateur est décoratif : aria-hidden n'est pas nécessaire sur un
+	   pseudo-élément, qui n'est déjà pas exposé à l'arbre d'accessibilité. */
+	.meta-line > * + *::before {
+		content: "·";
+		margin-inline-end: var(--sp-2);
+	}
+</style>
