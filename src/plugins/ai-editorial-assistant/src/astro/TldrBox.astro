@@ -33,15 +33,16 @@ const items = Array.isArray(bullets)
 
 <style>
 	.ai-tldr {
-		margin: 1.5rem 0;
-		padding: 1rem 1.25rem;
+		margin: var(--sp-8, 1.5rem) 0;
+		padding: var(--sp-4, 1rem) var(--sp-6, 1.25rem);
 		border-left: 3px solid currentColor;
-		background: color-mix(in srgb, currentColor 4%, transparent);
+		background: var(--color-surface-alt, color-mix(in srgb, currentColor 4%, transparent));
 	}
 
 	.ai-tldr__title {
-		margin: 0 0 0.5rem;
-		font-size: 0.8125rem;
+		margin: 0 0 var(--sp-2, 0.5rem);
+		font-family: var(--font-meta, inherit);
+		font-size: var(--fs-caption, 0.8125rem);
 		font-weight: 700;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
@@ -52,7 +53,7 @@ const items = Array.isArray(bullets)
 		padding-left: 1.1rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.4rem;
+		gap: var(--sp-2, 0.4rem);
 		line-height: 1.5;
 	}
 </style>
