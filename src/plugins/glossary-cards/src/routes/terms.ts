@@ -37,7 +37,7 @@ export async function getTermRouteHandler(input: { id: string }, ctx: PluginCont
 
 export async function saveTermRouteHandler(input: SaveTermInput, ctx: PluginContext): Promise<TermOutput> {
 	const store = createGlossaryStore(ctx);
-	const id = input.id ?? slugify(input.term);
+	const id = input.id ?? (await uniqueSlug(store, input.term));
 	await store.save({
 		id,
 		term: input.term.trim(),
@@ -53,6 +53,16 @@ export async function saveTermRouteHandler(input: SaveTermInput, ctx: PluginCont
 export async function deleteTermRouteHandler(input: { id: string }, ctx: PluginContext): Promise<{ ok: true }> {
 	await createGlossaryStore(ctx).delete(input.id);
 	return { ok: true };
+}
+
+async function uniqueSlug(store: ReturnType<typeof createGlossaryStore>, term: string): Promise<string> {
+	const base = slugify(term);
+	let id = base;
+	let counter = 2;
+	while (await store.get(id)) {
+		id = `${base}-${counter++}`;
+	}
+	return id;
 }
 
 function slugify(term: string): string {
