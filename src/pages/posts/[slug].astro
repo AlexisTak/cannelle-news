@@ -6,7 +6,7 @@ import {
 	decodeSlug,
 	getSiteSettings,
 } from "emdash";
-import { Image, PortableText } from "emdash/ui";
+import { PortableText } from "emdash/ui";
 import {
 	blockComponents as aiBlockComponents,
 	TldrBox,
@@ -51,7 +51,6 @@ const seo = getSeoMeta(post, {
 
 // Taxonomy terms are already hydrated onto the entry by getEmDashEntry.
 const tags = post.data.terms?.tag ?? [];
-const categories = post.data.terms?.category ?? [];
 
 // « À lire ensuite » : les plus récents hors article courant, limité à 3.
 const { entries: recent } = await getEmDashCollection("posts", {
