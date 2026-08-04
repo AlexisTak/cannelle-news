@@ -1,0 +1,135 @@
+---
+import type { Post } from "../../emdash-env";
+import { Image } from "emdash/ui";
+import Kicker from "./Kicker.astro";
+import MetaLine from "./MetaLine.astro";
+import { resolveKicker } from "../utils/format";
+
+// `Post` est la forme interne des champs (titre, image, etc.) exposée via
+// `post.data`. Le wrapper `getEmDashCollection` fournit `{ id, data }`.
+interface Props {
+	post: { id: string; data: Post };
+	variant?: "lead" | "standard" | "compact" | "list";
+	/**
+	 * Niveau de titre du titre de carte. La même carte apparaît sous un `h1`
+	 * en accueil et sous un `h2` de rubrique : sans cette prop la hiérarchie
+	 * de titres est cassée sur toutes les pages de listing (WCAG 1.3.1).
+	 */
+	headingLevel?: 2 | 3;
+}
+
+const { post, variant = "standard", headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}` as "h2" | "h3";
+
+// Cast : `kicker` et `dek` peuvent manquer de `emdash-env.d.ts` tant que la
+// base locale n'a pas été migrée. `resolveKicker` valide à l'exécution.
+const raw = post.data as unknown as Record<string, unknown>;
+const kicker = resolveKicker({
+	kicker: raw.kicker,
+	categories: post.data.terms?.category ?? [],
+});
+
+const summary =
+	variant === "lead" && typeof raw.dek === "string" && raw.dek.trim().length > 0
+		? raw.dek
+		: post.data.excerpt;
+
+const showImage = variant === "lead" || variant === "standard" || variant === "list";
+const showSummary = variant === "lead" || variant === "standard";
+const href = `/posts/${post.id}`;
+---
+
+<article class:list={["card", `card--${variant}`]}>
+	{
+		showImage && post.data.featured_image && (
+			<a class="card__media" href={href} tabindex="-1" aria-hidden="true">
+				<Image image={post.data.featured_image} />
+			</a>
+		)
+	}
+
+	<div class="card__body">
+		{kicker && <Kicker label={kicker.label} href={kicker.href} />}
+
+		<Heading class="card__title">
+			<a href={href}>{post.data.title}</a>
+		</Heading>
+
+		{showSummary && summary && <p class="card__summary">{summary}</p>}
+
+		{post.data.publishedAt && <MetaLine date={post.data.publishedAt} />}
+	</div>
+</article>
+
+<style>
+	.card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
+	}
+
+	.card__media {
+		display: block;
+		margin-block-end: var(--sp-1);
+	}
+
+	.card__media :global(img) {
+		width: 100%;
+		border-radius: var(--radius);
+	}
+
+	.card__title {
+		font-family: var(--font-display);
+		line-height: var(--lh-title);
+	}
+
+	.card__title :global(a) {
+		color: var(--color-ink);
+		text-decoration: none;
+	}
+
+	.card__title :global(a:hover) {
+		color: var(--color-accent);
+		text-decoration: underline;
+	}
+
+	.card__summary {
+		color: var(--color-ink-soft);
+		font-size: var(--fs-card);
+	}
+
+	.card--lead .card__title {
+		font-size: var(--fs-display);
+		letter-spacing: -0.02em;
+	}
+
+	.card--standard .card__title {
+		font-size: var(--fs-card-lead);
+	}
+
+	.card--compact .card__title {
+		font-size: var(--fs-card);
+	}
+
+	/* Variante en ligne : vignette à gauche, titre à droite. */
+	.card--list {
+		flex-direction: row;
+		align-items: start;
+		gap: var(--sp-4);
+	}
+
+	.card--list .card__media {
+		flex: 0 0 6rem;
+		margin-block-end: 0;
+	}
+
+	.card--list .card__title {
+		font-size: var(--fs-card);
+	}
+
+	@media (max-width: 600px) {
+		.card--lead .card__title {
+			font-size: var(--fs-h1);
+		}
+	}
+</style>
