@@ -2,8 +2,62 @@
 import Base from "../layouts/Base.astro";
 ---
 
-<Base title="Not Found">
-	<h1>Page not found</h1>
-	<p>The page you're looking for doesn't exist.</p>
-	<a href="/">Go home</a>
+<Base title="Page introuvable" compactHeader>
+	<div class="not-found">
+		<p class="not-found__code">Erreur 404</p>
+		<h1>Page introuvable</h1>
+		<p class="not-found__body">
+			La page que vous cherchez n'existe pas ou a été déplacée.
+		</p>
+		<a class="not-found__home" href="/">Retour à l'accueil</a>
+	</div>
 </Base>
+
+<style>
+	.not-found {
+		max-width: var(--w-text);
+		margin-inline: auto;
+		padding: var(--sp-24) var(--gutter);
+		text-align: center;
+	}
+
+	.not-found__code {
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-accent);
+	}
+
+	.not-found h1 {
+		margin-block-start: var(--sp-4);
+		font-size: var(--fs-h1);
+	}
+
+	.not-found__body {
+		margin-block-start: var(--sp-4);
+		color: var(--color-ink-soft);
+	}
+
+	.not-found__home {
+		display: inline-block;
+		margin-block-start: var(--sp-8);
+		padding: var(--sp-3) var(--sp-6);
+		border: 1px solid var(--color-border-interactive);
+		border-radius: var(--radius);
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink);
+		text-decoration: none;
+	}
+
+	.not-found__home:hover {
+		background: var(--color-ink);
+		border-color: var(--color-ink);
+		color: var(--color-surface);
+	}
+</style>
