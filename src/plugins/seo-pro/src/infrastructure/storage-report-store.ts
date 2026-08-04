@@ -1,6 +1,17 @@
 import type { PluginContext } from "emdash";
-import type { SeoReport } from "../domain/report";
+import type { Grade, SeoReport } from "../domain/report";
 import type { ReportStore } from "../ports/report-store";
+
+function scoreRangeForGrade(grade: Grade): { gte: number; lte: number } {
+	switch (grade) {
+		case "good":
+			return { gte: 80, lte: 100 };
+		case "ok":
+			return { gte: 60, lte: 79 };
+		case "poor":
+			return { gte: 0, lte: 59 };
+	}
+}
 
 export function createStorageReportStore(ctx: PluginContext): ReportStore {
 	const reports = ctx.storage.reports;
@@ -17,11 +28,19 @@ export function createStorageReportStore(ctx: PluginContext): ReportStore {
 			await reports.put(report.entryId, report);
 		},
 
-		async query({ collection, limit, cursor, sort = "score" }) {
+		async delete(entryId: string): Promise<boolean> {
+			return reports.delete(entryId);
+		},
+
+		async query({ collection, grade, limit, cursor, sort = "score" }) {
 			const orderBy: Record<string, "asc" | "desc"> =
 				sort === "analyzedAt" ? { analyzedAt: "desc" } : { score: "desc" };
+			type QueryOpts = NonNullable<Parameters<typeof reports.query>[0]>;
+			const where: NonNullable<QueryOpts["where"]> = {};
+			if (collection) where.collection = collection;
+			if (grade) where.score = scoreRangeForGrade(grade) as NonNullable<QueryOpts["where"]>[string];
 			const result = await reports.query({
-				where: collection ? { collection } : undefined,
+				where: Object.keys(where).length > 0 ? where : undefined,
 				orderBy,
 				limit,
 				cursor,

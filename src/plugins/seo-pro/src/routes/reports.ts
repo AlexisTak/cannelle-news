@@ -31,17 +31,14 @@ export async function reportsRouteHandler(
 ): Promise<{ items: ReportSummary[]; cursor: string | null; hasMore: boolean }> {
 	const result = await createStorageReportStore(ctx).query({
 		collection: input.collection,
+		grade: input.grade,
 		limit: input.limit,
 		cursor: input.cursor,
 		sort: input.sort,
 	});
 
-	// Le filtre par grade s'applique après la requête : le grade est dérivé du
-	// score et n'est pas indexé, donc non filtrable côté stockage.
-	const items = input.grade ? result.items.filter((r) => r.grade === input.grade) : result.items;
-
 	return {
-		items: items.map((r) => ({
+		items: result.items.map((r) => ({
 			entryId: r.entryId,
 			collection: r.collection,
 			title: r.title ?? null,

@@ -41,7 +41,7 @@ export function analyze(
 	const focusKeyword = manual ?? autoFocus;
 	const focusKeywordSource: SeoReport["focusKeywordSource"] = manual ? "manual" : "auto";
 
-	const env: RuleEnv = { focusKeyword };
+	const env: RuleEnv = { focusKeyword, siteUrl: config.siteUrl };
 
 	const ruleResults = rules.map(({ rule, weight }) => {
 		const ruleConfig = getRuleConfig(config, rule as SeoRule);
