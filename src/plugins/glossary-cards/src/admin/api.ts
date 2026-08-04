@@ -1,18 +1,34 @@
+import { apiFetch as emdashFetch } from "@emdash-cms/admin";
+
+const BASE = "/_emdash/api/plugins/glossary-cards";
+
 /**
- * Appelle les routes du plugin.
+ * Appelle une route du plugin.
  *
- * EmDash expose `apiFetch` via la page admin ; ici on reste sur fetch natif
- * pour ne pas ajouter de dépendance runtime.
+ * `apiFetch` d'EmDash ajoute l'en-tête `X-EmDash-Request` exigé par la
+ * protection CSRF du dispatcher de routes plugin
+ * (`astro/routes/api/plugins/[pluginId]/[...path].ts`) : un `fetch` nu reçoit
+ * un 403 sur *toutes* les routes, y compris les lectures.
+ *
+ * L'enveloppe est celle d'EmDash — `{ success, data }` en succès,
+ * `{ success, error }` en échec. Les routes de ce plugin renvoient leur
+ * résultat directement, sans la seconde enveloppe `{ ok, message }` que
+ * `ai-editorial-assistant` interpose pour faire voyager ses messages d'erreur.
  */
 export async function apiFetch<T>(route: string, body: Record<string, unknown>): Promise<T> {
-	const res = await fetch(`/_emdash/api/plugins/glossary-cards/${route}`, {
+	const res = await emdashFetch(`${BASE}/${route}`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(body),
 	});
-	const data = (await res.json()) as { ok: boolean; data?: T; message?: string } | T;
-	if (typeof data === "object" && data !== null && "ok" in data && !data.ok) {
-		throw new Error((data as { message?: string }).message ?? "Erreur du plugin");
+
+	const payload = (await res.json()) as
+		| { success: true; data: T }
+		| { success: false; error?: { code?: string; message?: string } };
+
+	if (!payload.success) {
+		throw new Error(payload.error?.message || payload.error?.code || "Erreur du plugin");
 	}
-	return data as T;
+
+	return payload.data;
 }
