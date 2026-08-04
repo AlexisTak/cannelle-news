@@ -56,6 +56,7 @@ Définies sur `:root` dans `src/styles/theme.css` — **pas** dans un `<style>` 
 | `--color-ink-muted` | `#666666` | méta, légendes | 5,7:1 ✓ AA |
 | `--color-accent` | `#326891` | liens | 5,5:1 ✓ AA |
 | `--color-accent-hover` | `#1d4b70` | survol | — |
+| `--color-accent-light` | `#8fb4d4` | liens sur fond sombre (infobulle) | 8,1:1 sur `--color-ink` ✓ AA |
 | `--color-surface` | `#ffffff` | fond | — |
 | `--color-surface-alt` | `#f7f7f7` | encadré TL;DR | — |
 | `--color-rule` | `#dfdfdf` | filets décoratifs | décoratif |
@@ -134,6 +135,7 @@ Fluide en `clamp()`, bornes en pixels indiquées pour référence.
 | `--fs-display` | `clamp(2.25rem, 1.6rem + 3.2vw, 3.75rem)` | 36 → 60 px — titre de une |
 | `--fs-h1` | `clamp(2rem, 1.5rem + 2.2vw, 3rem)` | 32 → 48 px — titre d'article |
 | `--fs-h2` | `1.75rem` | 28 px — titre de section |
+| `--fs-h3` | `1.3125rem` | 21 px — intertitre |
 | `--fs-card-lead` | `1.5rem` | 24 px |
 | `--fs-card` | `1.125rem` | 18 px |
 | `--fs-body` | `1.125rem` | 18 px, interligne 1,65 |
