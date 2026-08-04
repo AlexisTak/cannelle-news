@@ -1,5 +1,6 @@
 import { apiFetch } from "@emdash-cms/admin";
 import type { LinkerConfig } from "../domain/config";
+import type { AuditInput, AuditOutput } from "../routes/audit";
 import type { RouteResult } from "../routes/result";
 import type { RebuildOutput } from "../routes/rebuild";
 import type { SettingsInput, SettingsOutput } from "../routes/settings";
@@ -39,6 +40,14 @@ export function fetchSuggestions(input: SuggestInput): Promise<SuggestOutput> {
 
 export function rebuildIndex(): Promise<RebuildOutput> {
 	return call<RebuildOutput>("rebuild", {});
+}
+
+export function fetchLinkerHealth(): Promise<SettingsOutput> {
+	return call<SettingsOutput>("settings", {});
+}
+
+export function fetchLinkerAudit(input: Partial<AuditInput> = {}): Promise<AuditOutput> {
+	return call<AuditOutput>("audit", input);
 }
 
 export function fetchLinkerSettings(): Promise<SettingsOutput> {

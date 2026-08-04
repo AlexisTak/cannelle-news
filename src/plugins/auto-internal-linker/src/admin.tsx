@@ -1,5 +1,8 @@
+import { AuditPage } from "./ui/pages/AuditPage";
 import { SettingsPage } from "./ui/pages/SettingsPage";
 import { SuggestionsField } from "./ui/fields/SuggestionsField";
+import { AuditWidget } from "./ui/widgets/AuditWidget";
+import { HealthWidget } from "./ui/widgets/HealthWidget";
 
 /**
  * Exports admin du plugin.
@@ -19,10 +22,16 @@ import { SuggestionsField } from "./ui/fields/SuggestionsField";
  */
 export const pages = {
 	"/settings": SettingsPage,
+	"/audit": AuditPage,
 };
 
 export const fields = {
 	suggestions: SuggestionsField,
 };
 
-export default { pages, fields };
+export const widgets = {
+	"linker-health": HealthWidget,
+	"linker-audit": AuditWidget,
+};
+
+export default { pages, fields, widgets };

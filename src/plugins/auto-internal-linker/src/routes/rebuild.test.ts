@@ -27,6 +27,7 @@ describe("rebuildRouteHandler", () => {
 
 		expect(output.entriesProcessed).toBe(2);
 		expect(output.keywordsIndexed).toBeGreaterThan(0);
+		expect(output.orphansPurged).toBe(0);
 		expect(await createKeywordIndexStore(ctx).count()).toBe(output.keywordsIndexed);
 	});
 
@@ -37,5 +38,27 @@ describe("rebuildRouteHandler", () => {
 
 		expect(second.keywordsIndexed).toBe(first.keywordsIndexed);
 		expect(await createKeywordIndexStore(ctx).count()).toBe(first.keywordsIndexed);
+	});
+
+	it("purge les entrées orphelines à la fin du rebuild", async () => {
+		const { ctx } = ctxWithArticles();
+		const target = {
+			normalized: "obsolete",
+			display: "obsolete",
+			targetId: "gone",
+			targetCollection: "posts",
+			targetSlug: "gone",
+			targetTitle: "Gone",
+			targetUrl: "/posts/gone",
+			source: "manual" as const,
+			weight: 100,
+			updatedAt: new Date().toISOString(),
+		};
+		await createKeywordIndexStore(ctx).replaceForTarget("gone", [target]);
+
+		const output = await rebuildRouteHandler({}, ctx);
+
+		expect(output.orphansPurged).toBeGreaterThan(0);
+		expect(await createKeywordIndexStore(ctx).count()).toBe(output.keywordsIndexed);
 	});
 });

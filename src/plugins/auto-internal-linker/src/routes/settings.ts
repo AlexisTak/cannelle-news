@@ -34,6 +34,8 @@ export interface SettingsOutput {
 	config: LinkerConfig;
 	/** Taille de l'index, affichée à côté du bouton de reconstruction. */
 	indexSize: number;
+	/** Nombre d'articles publiés dans les collections analysables. */
+	publishedCount: number;
 }
 
 /**
@@ -50,8 +52,19 @@ export async function settingsRouteHandler(
 	const store = createKvConfigStore(ctx);
 	if (input.patch) await store.set(input.patch as Partial<LinkerConfig>);
 
+	const config = await store.get();
+	let publishedCount = 0;
+	for (const collection of config.analyzableCollections) {
+		const page = await ctx.content?.list(collection, {
+			where: { status: "published" },
+			limit: 1,
+		});
+		publishedCount += page?.items.length ?? 0;
+	}
+
 	return {
-		config: await store.get(),
+		config,
 		indexSize: await createKeywordIndexStore(ctx).count(),
+		publishedCount,
 	};
 }
