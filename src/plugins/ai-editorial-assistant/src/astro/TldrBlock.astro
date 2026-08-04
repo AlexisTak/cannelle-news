@@ -1,0 +1,58 @@
+---
+/**
+ * Rendu du bloc Portable Text `aiTldr`.
+ *
+ * EmDash passe le nœud du bloc en prop `node`. Les trois puces y sont des
+ * champs plats (`bullet1`…`bullet3`) parce que l'UI d'édition d'un bloc est du
+ * Block Kit déclaratif : elle ne sait produire que des entrées nommées, pas un
+ * tableau. On les normalise ici pour que le gabarit ne connaisse qu'une liste.
+ */
+interface Props {
+	node?: Record<string, unknown>;
+}
+
+const { node } = Astro.props;
+
+const bullets = ["bullet1", "bullet2", "bullet3"]
+	.map((key) => node?.[key])
+	.filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+---
+
+{
+	bullets.length > 0 && (
+		<aside class="ai-tldr" aria-label="Points clés">
+			<p class="ai-tldr__title">En bref</p>
+			<ul class="ai-tldr__list">
+				{bullets.map((bullet) => (
+					<li>{bullet}</li>
+				))}
+			</ul>
+		</aside>
+	)
+}
+
+<style>
+	.ai-tldr {
+		margin: 1.5rem 0;
+		padding: 1rem 1.25rem;
+		border-left: 3px solid currentColor;
+		background: color-mix(in srgb, currentColor 4%, transparent);
+	}
+
+	.ai-tldr__title {
+		margin: 0 0 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.ai-tldr__list {
+		margin: 0;
+		padding-left: 1.1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		line-height: 1.5;
+	}
+</style>
