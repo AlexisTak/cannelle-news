@@ -1,0 +1,69 @@
+{
+	"id": "01JDXAMPLE0000000000000000",
+	"slug": "modeles-de-diffusion-latente",
+	"updatedAt": "2026-08-03T09:12:00.000Z",
+	"data": {
+		"title": "Les modèles de diffusion latente arrivent en production",
+		"content": [
+			{
+				"_type": "block",
+				"style": "normal",
+				"children": [
+					{
+						"_type": "span",
+						"text": "Trois laboratoires européens ont publié cette semaine des modèles de diffusion latente entraînés sur des corpus ouverts, avec des poids téléchargeables sans restriction commerciale."
+					}
+				]
+			},
+			{
+				"_type": "block",
+				"style": "h2",
+				"children": [{ "_type": "span", "text": "Comment ça marche" }]
+			},
+			{
+				"_type": "block",
+				"style": "normal",
+				"children": [
+					{
+						"_type": "span",
+						"text": "Le modèle opère dans un espace latent compressé par un auto-encodeur variationnel, ce qui réduit d'un facteur quarante-huit le nombre d'opérations par étape de débruitage par rapport à une diffusion pixel."
+					}
+				]
+			},
+			{
+				"_type": "block",
+				"style": "normal",
+				"children": [{ "_type": "span", "text": "Trop court." }]
+			},
+			{
+				"_type": "list",
+				"listItem": "bullet",
+				"children": [
+					{
+						"_type": "block",
+						"children": [
+							{
+								"_type": "span",
+								"text": "Inférence divisée par six sur GPU grand public par rapport à la génération précédente."
+							}
+						]
+					},
+					{
+						"_type": "block",
+						"children": [
+							{
+								"_type": "span",
+								"text": "Licence permissive, y compris pour les usages commerciaux et la redistribution."
+							}
+						]
+					}
+				]
+			},
+			{
+				"_type": "image",
+				"src": "/media/diffusion.png",
+				"alt": "Schéma d'une architecture de diffusion latente"
+			}
+		]
+	}
+}

@@ -1,0 +1,58 @@
+---
+/**
+ * Rendu de l'encadré TL;DR issu du **champ** `tldr`.
+ *
+ * Distinct de `TldrBlock.astro`, qui rend le bloc inséré dans le corps : ici
+ * la valeur vient d'un champ de collection (`string[]`), et le gabarit décide
+ * de son emplacement — en tête d'article, avant le corps.
+ */
+interface Props {
+	bullets?: unknown;
+	title?: string;
+}
+
+const { bullets, title = "En bref" } = Astro.props;
+
+const items = Array.isArray(bullets)
+	? bullets.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+	: [];
+---
+
+{
+	items.length > 0 && (
+		<aside class="ai-tldr" aria-label={title}>
+			<p class="ai-tldr__title">{title}</p>
+			<ul class="ai-tldr__list">
+				{items.map((item) => (
+					<li>{item}</li>
+				))}
+			</ul>
+		</aside>
+	)
+}
+
+<style>
+	.ai-tldr {
+		margin: 1.5rem 0;
+		padding: 1rem 1.25rem;
+		border-left: 3px solid currentColor;
+		background: color-mix(in srgb, currentColor 4%, transparent);
+	}
+
+	.ai-tldr__title {
+		margin: 0 0 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.ai-tldr__list {
+		margin: 0;
+		padding-left: 1.1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		line-height: 1.5;
+	}
+</style>
