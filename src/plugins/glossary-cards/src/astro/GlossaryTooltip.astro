@@ -1,0 +1,32 @@
+---
+import type { GlossaryMarkDef } from "../lib/types";
+
+interface Props {
+  value: GlossaryMarkDef;
+}
+
+const { value } = Astro.props;
+---
+
+{
+  value.fullUrl ? (
+    <a
+      href={value.fullUrl}
+      class="glossary-term"
+      data-term={value.term}
+      data-definition={value.definition}
+      data-full-url={value.fullUrl}
+    >
+      <slot />
+    </a>
+  ) : (
+    <span
+      class="glossary-term"
+      data-term={value.term}
+      data-definition={value.definition}
+      role="term"
+    >
+      <slot />
+    </span>
+  )
+}

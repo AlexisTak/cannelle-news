@@ -61,6 +61,38 @@
 			]
 		},
 		{
+			"slug": "glossary",
+			"label": "Glossaire",
+			"labelSingular": "Terme",
+			"urlPattern": "/glossaire/{slug}",
+			"supports": ["drafts", "revisions", "search"],
+			"fields": [
+				{
+					"slug": "term",
+					"label": "Terme",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "definition",
+					"label": "Définition courte",
+					"type": "text",
+					"required": true
+				},
+				{
+					"slug": "full_url",
+					"label": "Lien complet",
+					"type": "string"
+				},
+				{
+					"slug": "aliases",
+					"label": "Alias",
+					"type": "json"
+				}
+			]
+		},
+		{
 			"slug": "pages",
 			"label": "Pages",
 			"labelSingular": "Page",

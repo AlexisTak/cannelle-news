@@ -1,7 +1,17 @@
 ---
 import { getEmDashEntry, getSeoMeta, decodeSlug, getSiteSettings } from "emdash";
 import { Image, PortableText, WidgetArea } from "emdash/ui";
+import {
+	blockComponents as aiBlockComponents,
+	TldrBox,
+} from "../../plugins/ai-editorial-assistant/src/astro";
 import { blockComponents, ResearchPaperJsonLd } from "../../plugins/research-paper-embed/src/astro";
+import {
+	markComponents as glossaryMarkComponents,
+	GlossaryJsonLd,
+	GlossaryScript,
+	GlossaryStyles,
+} from "../../plugins/glossary-cards/src/astro";
 import Base from "../../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../../utils/site-identity";
 
@@ -40,6 +50,8 @@ const categories = post.data.terms?.category ?? [];
 	image={seo.ogImage}
 	content={{ collection: "posts", id: post.data.id, slug }}
 >
+	<GlossaryStyles slot="head" />
+	<GlossaryScript slot="head" />
 	<article>
 		{
 			post.data.featured_image && (
@@ -73,8 +85,21 @@ const categories = post.data.terms?.category ?? [];
 			)
 		}
 
-		<PortableText value={post.data.content} components={{ types: blockComponents }} />
+		{/*
+			`emdash-env.d.ts` est régénéré depuis la base au démarrage du dev
+			server : `tldr` n'apparaît sur le type `Post` qu'une fois le champ
+			créé (seed d'une base neuve, ou ajout via le générateur de schéma).
+			L'accès est donc élargi ici pour que `astro check` passe sur une base
+			antérieure au plugin ; `TldrBox` valide la valeur à l'exécution.
+		*/}
+		<TldrBox bullets={(post.data as unknown as Record<string, unknown>).tldr} />
 
+		<PortableText
+			value={post.data.content}
+			components={{ types: { ...blockComponents, ...aiBlockComponents }, marks: glossaryMarkComponents }}
+		/>
+
+		<GlossaryJsonLd blocks={post.data.content ?? []} />
 		<ResearchPaperJsonLd blocks={post.data.content ?? []} />
 
 		{

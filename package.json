@@ -21,6 +21,7 @@
     "@astrojs/react": "^6.0.0",
     "@cannelle/plugin-ai-editorial-assistant": "workspace:*",
     "@cannelle/plugin-auto-internal-linker": "workspace:*",
+    "@cannelle/plugin-glossary-cards": "workspace:*",
     "@cannelle/plugin-research-paper-embed": "workspace:*",
     "@cannelle/plugin-seo-pro": "workspace:*",
     "@emdash-cms/cloudflare": "^0.30.0",

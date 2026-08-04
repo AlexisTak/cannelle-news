@@ -6,6 +6,7 @@ import emdash from "emdash/astro";
 
 import { aiEditorialAssistantPlugin } from "./src/plugins/ai-editorial-assistant/src/index.ts";
 import { autoInternalLinkerPlugin } from "./src/plugins/auto-internal-linker/src/index.ts";
+import { glossaryCardsPlugin } from "./src/plugins/glossary-cards/src/index.ts";
 import { researchPaperEmbedPlugin } from "./src/plugins/research-paper-embed/src/index.ts";
 import { seoProPlugin } from "./src/plugins/seo-pro/src/index.ts";
 
@@ -25,6 +26,7 @@ export default defineConfig({
 				researchPaperEmbedPlugin(),
 				seoProPlugin(),
 				autoInternalLinkerPlugin(),
+				glossaryCardsPlugin(),
 				// `allowedHosts` est figé à la construction du contexte : l'hôte
 				// Ollama doit donc être connu ici, un réglage d'admin ne pourrait
 				// pas l'ajouter après coup.
@@ -39,6 +41,9 @@ export default defineConfig({
 				"@cannelle/plugin-ai-editorial-assistant/admin",
 				"@cannelle/plugin-auto-internal-linker",
 				"@cannelle/plugin-auto-internal-linker/admin",
+				"@cannelle/plugin-glossary-cards",
+				"@cannelle/plugin-glossary-cards/admin",
+				"@cannelle/plugin-glossary-cards/astro",
 				"@cannelle/plugin-research-paper-embed",
 				"@cannelle/plugin-research-paper-embed/admin",
 				"@cannelle/plugin-seo-pro",
@@ -49,6 +54,7 @@ export default defineConfig({
 			noExternal: [
 				"@cannelle/plugin-ai-editorial-assistant",
 				"@cannelle/plugin-auto-internal-linker",
+				"@cannelle/plugin-glossary-cards",
 				"@cannelle/plugin-research-paper-embed",
 				"@cannelle/plugin-seo-pro",
 			],

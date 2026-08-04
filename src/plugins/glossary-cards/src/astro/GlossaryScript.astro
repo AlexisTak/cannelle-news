@@ -1,0 +1,107 @@
+---
+/**
+ * Script client-side unique qui affiche les tooltips au survol ou au clic.
+ *
+ * Utilise une instance unique de tooltip déplacée dans le DOM pour éviter les
+ * problèmes de z-index et de débordement.
+ */
+---
+
+<script is:inline>
+  (function () {
+    const TOOLTIP_ID = "glossary-tooltip";
+    let tooltip = document.getElementById(TOOLTIP_ID);
+
+    function ensureTooltip() {
+      if (tooltip) return tooltip;
+      tooltip = document.createElement("div");
+      tooltip.id = TOOLTIP_ID;
+      tooltip.className = "glossary-tooltip";
+      tooltip.setAttribute("role", "tooltip");
+      tooltip.setAttribute("aria-hidden", "true");
+      document.body.appendChild(tooltip);
+      return tooltip;
+    }
+
+    function render(target) {
+      const term = target.dataset.term || "";
+      const definition = target.dataset.definition || "";
+      const fullUrl = target.dataset.fullUrl;
+      const linkHtml = fullUrl
+        ? ` <a href="${escapeHtml(fullUrl)}" target="_blank" rel="noopener">En savoir plus →</a>`
+        : "";
+      ensureTooltip().innerHTML = `
+        <span class="glossary-tooltip__term">${escapeHtml(term)}</span>
+        <span>${escapeHtml(definition)}${linkHtml}</span>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function position(target) {
+      const rect = target.getBoundingClientRect();
+      const tip = ensureTooltip();
+      const tipRect = tip.getBoundingClientRect();
+      const top = rect.top - tipRect.height - 8 + window.scrollY;
+      let left = rect.left + rect.width / 2 - tipRect.width / 2 + window.scrollX;
+      left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+      tip.style.top = `${top}px`;
+      tip.style.left = `${left}px`;
+    }
+
+    function show(target) {
+      render(target);
+      const tip = ensureTooltip();
+      tip.classList.add("visible");
+      tip.setAttribute("aria-hidden", "false");
+      position(target);
+    }
+
+    function hide() {
+      const tip = ensureTooltip();
+      tip.classList.remove("visible");
+      tip.setAttribute("aria-hidden", "true");
+    }
+
+    document.addEventListener("mouseover", (event) => {
+      const target = event.target.closest(".glossary-term");
+      if (target) show(target);
+    });
+
+    document.addEventListener("mouseout", (event) => {
+      const target = event.target.closest(".glossary-term");
+      if (target) hide();
+    });
+
+    document.addEventListener("focusin", (event) => {
+      const target = event.target.closest(".glossary-term");
+      if (target) show(target);
+    });
+
+    document.addEventListener("focusout", (event) => {
+      const target = event.target.closest(".glossary-term");
+      if (target) hide();
+    });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target.closest(".glossary-term");
+      if (!target) return;
+      // Sur mobile : un clic affiche le tooltip, un second masque.
+      const tip = ensureTooltip();
+      if (tip.classList.contains("visible")) {
+        hide();
+      } else {
+        show(target);
+      }
+    });
+
+    window.addEventListener("scroll", hide, true);
+    window.addEventListener("resize", hide);
+  })();
+</script>

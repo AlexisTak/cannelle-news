@@ -1,0 +1,34 @@
+---
+import type { PortableTextBlock } from "emdash";
+import { collectGlossaryMarks } from "../lib/portable-text";
+
+interface Props {
+  blocks: PortableTextBlock[];
+}
+
+const { blocks } = Astro.props;
+const marks = collectGlossaryMarks(blocks);
+
+if (marks.length === 0) return null;
+
+const seen = new Set<string>();
+const unique = marks.filter((m) => {
+  if (seen.has(m.termId)) return false;
+  seen.add(m.termId);
+  return true;
+});
+
+const graph = unique.map((m) => ({
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  name: m.term,
+  description: m.definition,
+  inDefinedTermSet: {
+    "@type": "DefinedTermSet",
+    name: "Glossaire",
+  },
+  ...(m.fullUrl ? { url: m.fullUrl } : {}),
+}));
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(graph.length === 1 ? graph[0] : graph)} is:inline />

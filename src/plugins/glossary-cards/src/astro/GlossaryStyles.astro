@@ -1,0 +1,62 @@
+---
+/**
+ * Feuille de styles du tooltip.
+ *
+ * Injectée une seule fois par page via page:fragments. Les styles sont
+ * scoped par une classe CSS pour éviter les conflits avec le thème.
+ */
+---
+
+<style is:inline>
+  .glossary-term {
+    border-bottom: 1px dashed currentColor;
+    cursor: help;
+    text-decoration: none;
+  }
+  .glossary-term:hover,
+  .glossary-term:focus-visible {
+    border-bottom-style: solid;
+    outline: none;
+  }
+
+  .glossary-tooltip {
+    position: absolute;
+    z-index: 50;
+    max-width: 320px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #1f2937;
+    color: #f9fafb;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .glossary-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .glossary-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+  }
+  .glossary-tooltip a {
+    color: #93c5fd;
+    text-decoration: underline;
+    pointer-events: auto;
+  }
+  .glossary-tooltip__term {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+</style>
