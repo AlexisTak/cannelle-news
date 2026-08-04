@@ -1,0 +1,70 @@
+---
+import { WidgetArea } from "emdash/ui";
+
+interface Props {
+	siteTitle: string;
+}
+
+const { siteTitle } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+	<div class="site-footer__inner">
+		<WidgetArea name="sidebar" />
+	</div>
+	<p class="site-footer__legal">© {year} {siteTitle}</p>
+</footer>
+
+<style>
+	.site-footer {
+		margin-block-start: var(--sp-24);
+		border-block-start: 3px solid var(--color-ink);
+		background: var(--color-surface);
+	}
+
+	.site-footer__inner {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+		gap: var(--sp-8);
+		max-width: var(--w-page);
+		margin-inline: auto;
+		padding: var(--sp-12) var(--gutter);
+	}
+
+	/* Les widgets sont rendus par EmDash : leurs éléments portent la portée
+	   du composant WidgetArea, pas celle-ci. `:global()` est donc requis. */
+	.site-footer__inner :global(h2),
+	.site-footer__inner :global(h3) {
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		margin-block-end: var(--sp-3);
+		padding-block-end: var(--sp-2);
+		border-block-end: 1px solid var(--color-rule);
+	}
+
+	.site-footer__inner :global(ul) {
+		list-style: none;
+		padding: 0;
+	}
+
+	.site-footer__inner :global(li) {
+		padding-block: var(--sp-2);
+		border-block-end: 1px solid var(--color-rule);
+		font-size: var(--fs-caption);
+	}
+
+	.site-footer__legal {
+		max-width: var(--w-page);
+		margin-inline: auto;
+		padding: var(--sp-6) var(--gutter) var(--sp-12);
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink-muted);
+	}
+</style>
