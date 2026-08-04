@@ -1,0 +1,93 @@
+---
+/**
+ * Corps d'article. Porte la grille à sorties de colonne : le texte se lit sur
+ * `--w-text`, mais un enfant marqué `.is-wide` ou `.is-full` peut déborder.
+ *
+ * Tous les sélecteurs visant le contenu sont en `:global()` : le balisage vient
+ * de `<PortableText>` et porte la portée de ce composant-là, pas celle-ci.
+ */
+---
+
+<div class="prose">
+	<slot />
+</div>
+
+<style>
+	.prose {
+		display: grid;
+		grid-template-columns:
+			[full-start] minmax(var(--gutter), 1fr)
+			[wide-start] minmax(0, calc((var(--w-wide) - var(--w-text)) / 2))
+			[text-start] min(100% - var(--gutter) * 2, var(--w-text)) [text-end]
+			minmax(0, calc((var(--w-wide) - var(--w-text)) / 2)) [wide-end]
+			minmax(var(--gutter), 1fr) [full-end];
+		margin-block-start: var(--sp-12);
+	}
+
+	/* Les paires [text-start]/[text-end] créent la zone nommée `text` : pas
+	   d'indices de colonne à recompter si une colonne est ajoutée. */
+	.prose > :global(*) {
+		grid-column: text;
+	}
+
+	.prose > :global(.is-wide) {
+		grid-column: wide;
+	}
+
+	.prose > :global(.is-full) {
+		grid-column: full;
+	}
+
+	.prose > :global(* + *) {
+		margin-block-start: var(--sp-6);
+	}
+
+	.prose :global(p) {
+		font-size: var(--fs-body);
+		line-height: var(--lh-body);
+	}
+
+	.prose > :global(h2) {
+		margin-block-start: var(--sp-12);
+		font-size: var(--fs-h2);
+	}
+
+	.prose > :global(h3) {
+		margin-block-start: var(--sp-8);
+		font-size: var(--fs-h3);
+	}
+
+	.prose :global(ul),
+	.prose :global(ol) {
+		padding-inline-start: var(--sp-6);
+	}
+
+	.prose :global(li) {
+		margin-block-start: var(--sp-2);
+	}
+
+	.prose :global(ul) {
+		list-style: square;
+	}
+
+	.prose > :global(blockquote) {
+		padding-inline-start: var(--sp-6);
+		border-inline-start: 3px solid var(--color-ink);
+		font-family: var(--font-display);
+		font-size: var(--fs-card-lead);
+		line-height: 1.3;
+	}
+
+	.prose :global(figure) :global(img) {
+		width: 100%;
+		border-radius: var(--radius);
+	}
+
+	.prose :global(figcaption) {
+		margin-block-start: var(--sp-2);
+		font-family: var(--font-meta);
+		font-size: var(--fs-caption);
+		line-height: 1.4;
+		color: var(--color-ink-muted);
+	}
+</style>
