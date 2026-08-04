@@ -17,7 +17,7 @@ export async function fetchArxiv(
   id: string,
   ctx: PluginContext
 ): Promise<LookupResult> {
-  const url = `http://export.arxiv.org/api/query?id_list=${encodeURIComponent(id)}`;
+  const url = `https://export.arxiv.org/api/query?id_list=${encodeURIComponent(id)}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -66,6 +66,11 @@ export async function fetchArxiv(
   }
 
   const title = collapse(String(entry.title ?? ""));
+  if (title === "Error") {
+    ctx.log.error("arxiv returned an error entry", { id });
+    return { ok: false, reason: "not-found" };
+  }
+
   const summary = collapse(String(entry.summary ?? ""));
   const authors = asArray(entry.author).map((a) => collapse(String((a as { name?: string }).name ?? "")));
   const published = String(entry.published ?? "");

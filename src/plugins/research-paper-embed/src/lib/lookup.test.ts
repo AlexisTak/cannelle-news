@@ -31,7 +31,7 @@ function mockCtx(map: Record<string, { body: string | object; status?: number }>
 describe("lookup route", () => {
   it("routes arxiv URL to arXiv fetcher", async () => {
     const ctx = mockCtx({
-      "http://export.arxiv.org/api/query?id_list=2301.12345": { body: arxivFixture },
+      "https://export.arxiv.org/api/query?id_list=2301.12345": { body: arxivFixture },
     });
     const result = await lookupHandler({ url: "https://arxiv.org/abs/2301.12345" }, ctx);
     expect(result.ok).toBe(true);
@@ -49,5 +49,55 @@ describe("lookup route", () => {
     const ctx = mockCtx({});
     const result = await lookupHandler({ url: "not a paper" }, ctx);
     expect(result).toEqual({ ok: false, reason: "unrecognized" });
+  });
+
+  it("reuses current metadata when it is fresh and force is false", async () => {
+    const ctx = mockCtx({
+      "https://export.arxiv.org/api/query?id_list=2301.12345": { body: arxivFixture },
+    });
+    const current = {
+      source: "arxiv" as const,
+      sourceId: "2301.12345",
+      title: "Cached",
+      authors: ["A"],
+      publishedDate: "2023-01-01",
+      abstract: "cached abstract",
+      pdfUrl: "https://arxiv.org/pdf/2301.12345.pdf",
+      doi: null,
+      fetchedAt: new Date().toISOString(),
+    };
+    const result = await lookupHandler(
+      { url: "https://arxiv.org/abs/2301.12345", current },
+      ctx,
+      7
+    );
+    expect(result).toEqual({ ok: true, paper: current });
+    expect(ctx.http.fetch).not.toHaveBeenCalled();
+  });
+
+  it("fetches anyway when force is true even with fresh current metadata", async () => {
+    const ctx = mockCtx({
+      "https://export.arxiv.org/api/query?id_list=2301.12345": { body: arxivFixture },
+    });
+    const current = {
+      source: "arxiv" as const,
+      sourceId: "2301.12345",
+      title: "Cached",
+      authors: ["A"],
+      publishedDate: "2023-01-01",
+      abstract: "cached abstract",
+      pdfUrl: "https://arxiv.org/pdf/2301.12345.pdf",
+      doi: null,
+      fetchedAt: new Date().toISOString(),
+    };
+    const result = await lookupHandler(
+      { url: "https://arxiv.org/abs/2301.12345", force: true, current },
+      ctx,
+      7
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.paper.title).toContain("Test Paper");
+    expect(ctx.http.fetch).toHaveBeenCalledTimes(1);
   });
 });
