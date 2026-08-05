@@ -1,0 +1,129 @@
+---
+import { getEmDashCollection, getSeoMeta, getSiteSettings } from "emdash";
+import { toSafeJsonLd } from "@cannelle/shared-utils";
+import Base from "../../layouts/Base.astro";
+import { resolveStarterSiteIdentity } from "../../utils/site-identity";
+
+const { entries: terms, cacheHint } = await getEmDashCollection("glossary", {
+	orderBy: { term: "asc" },
+});
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
+const title = `Glossaire — ${siteTitle}`;
+const description = `Définitions des termes techniques, acronymes et concepts utilisés sur ${siteTitle}.`;
+
+const seo = getSeoMeta(
+	{
+		data: { title: "Glossaire", excerpt: description },
+	},
+	{ siteTitle, siteUrl: Astro.url.origin, path: "/glossaire" },
+);
+
+interface TermData {
+	term?: unknown;
+	definition?: unknown;
+	full_url?: unknown;
+	aliases?: unknown;
+}
+
+const jsonLd = {
+	"@context": "https://schema.org",
+	"@type": "DefinedTermSet",
+	name: `Glossaire — ${siteTitle}`,
+	description,
+	url: Astro.url.origin + "/glossaire",
+	hasDefinedTerm: terms.map((entry) => {
+		const term = entry.data as TermData;
+		return {
+			"@type": "DefinedTerm",
+			name: term.term,
+			description: term.definition,
+			...(term.full_url ? { url: term.full_url } : {}),
+		};
+	}),
+};
+---
+
+<Base
+	title={title}
+	pageTitle="Glossaire"
+	description={description}
+	canonical={seo.canonical}
+	image={seo.ogImage}
+>
+	<script type="application/ld+json" set:html={toSafeJsonLd(jsonLd)} is:inline slot="head"></script>
+
+	<article class="glossary-page">
+		<h1>Glossaire</h1>
+		<p class="glossary-intro">
+			Définitions des termes techniques, acronymes et concepts utilisés sur le site.
+		</p>
+
+		{
+			terms.length === 0 ? (
+				<p>Aucun terme n'a encore été ajouté au glossaire.</p>
+			) : (
+				<dl class="glossary-list">
+					{terms.map((entry) => {
+						const term = entry.data as TermData;
+						const fullUrl = typeof term.full_url === "string" ? term.full_url : null;
+						const aliases = Array.isArray(term.aliases)
+							? (term.aliases.filter((a) => typeof a === "string") as string[])
+							: [];
+						return (
+							<div class="glossary-entry" id={`term-${entry.id}`}>
+								<dt class="glossary-term">
+									{fullUrl ? <a href={fullUrl}>{String(term.term)}</a> : String(term.term)}
+								</dt>
+								<dd class="glossary-definition">{String(term.definition)}</dd>
+								{aliases.length > 0 && (
+									<dd class="glossary-aliases">
+										<span class="glossary-aliases-label">Aussi appelé :</span>{" "}
+										{aliases.join(", ")}
+									</dd>
+								)}
+							</div>
+						);
+					})}
+				</dl>
+			)
+		}
+	</article>
+</Base>
+
+<style>
+	.glossary-page {
+		max-width: 720px;
+		margin: 0 auto;
+		padding: 24px;
+	}
+	.glossary-intro {
+		color: #4b5563;
+		margin-bottom: 32px;
+	}
+	.glossary-list {
+		display: grid;
+		gap: 24px;
+	}
+	.glossary-term {
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin-bottom: 8px;
+	}
+	.glossary-term a {
+		text-decoration: underline;
+	}
+	.glossary-definition {
+		margin: 0;
+		line-height: 1.6;
+	}
+	.glossary-aliases {
+		margin: 8px 0 0;
+		font-size: 0.875rem;
+		color: #6b7280;
+	}
+	.glossary-aliases-label {
+		font-weight: 500;
+	}
+</style>

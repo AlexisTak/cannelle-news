@@ -20,6 +20,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "^14.0.0",
     "@astrojs/react": "^6.0.0",
+    "@cannelle/shared-utils": "workspace:*",
     "@cannelle/plugin-ai-editorial-assistant": "workspace:*",
     "@cannelle/plugin-analytics": "workspace:*",
     "@cannelle/plugin-auto-internal-linker": "workspace:*",

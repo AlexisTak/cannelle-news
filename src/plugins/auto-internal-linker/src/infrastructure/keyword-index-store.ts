@@ -102,6 +102,15 @@ export function createKeywordIndexStore(ctx: PluginContext): KeywordIndexStore {
 			return keywords;
 		},
 
+		async stream(consumer): Promise<void> {
+			let cursor: string | undefined;
+			do {
+				const page = await collection.query({ limit: PAGE_SIZE, cursor });
+				await consumer(page.items.map((item) => item.data as IndexedKeyword));
+				cursor = page.hasMore ? page.cursor : undefined;
+			} while (cursor);
+		},
+
 		count(): Promise<number> {
 			return collection.count();
 		},

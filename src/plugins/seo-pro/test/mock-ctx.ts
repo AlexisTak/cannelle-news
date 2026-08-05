@@ -1,22 +1,56 @@
 import type { PluginContext } from "emdash";
 
+export interface MockEntry {
+	id: string;
+	slug?: string | null;
+	locale?: string | null;
+	updatedAt?: string;
+	data: Record<string, unknown>;
+	seo?: Record<string, unknown>;
+	status?: string;
+}
+
 export interface MockCtxOptions {
 	kv?: Record<string, unknown>;
 	reports?: Record<string, unknown>;
+	entries?: Record<string, MockEntry>;
+	withoutContent?: boolean;
 }
 
 /**
  * `PluginContext` minimal en mémoire.
  *
- * Ne couvre que `kv`, `storage.reports` et `log` — les seules surfaces que le
- * plugin touche. Le reste est laissé absent volontairement : une route qui
- * commencerait à lire `ctx.media` doit échouer bruyamment en test, pas être
- * silencieusement satisfaite par un bouchon vide.
+ * Couvre `kv`, `storage.reports`, `content` et `log`. Le reste est laissé
+ * absent volontairement : une route qui commencerait à lire `ctx.media` doit
+ * échouer bruyamment en test, pas être silencieusement satisfaite par un
+ * bouchon vide.
  */
 export function createMockCtx(options: MockCtxOptions = {}) {
 	const kv = new Map<string, unknown>(Object.entries(options.kv ?? {}));
 	const reports = new Map<string, unknown>(Object.entries(options.reports ?? {}));
+	const entries = new Map<string, MockEntry>(Object.entries(options.entries ?? {}));
+	const updates: Array<{ collection: string; id: string; data: Record<string, unknown> }> = [];
 	const logs: Array<{ level: string; message: string }> = [];
+
+	const content = {
+		async get(collection: string, id: string) {
+			return entries.get(`${collection}/${id}`) ?? null;
+		},
+		async update(collection: string, id: string, data: Record<string, unknown>) {
+			const key = `${collection}/${id}`;
+			const existing = entries.get(key);
+			if (!existing) throw new Error(`entrée ${key} introuvable`);
+			updates.push({ collection, id, data });
+			const { seo, ...fields } = data;
+			const next: MockEntry = {
+				...existing,
+				data: { ...existing.data, ...fields },
+			};
+			if (seo) next.seo = seo as Record<string, unknown>;
+			entries.set(key, next);
+			return next;
+		},
+	};
 
 	const ctx = {
 		plugin: { id: "seo-pro", version: "0.1.0" },
@@ -65,12 +99,23 @@ export function createMockCtx(options: MockCtxOptions = {}) {
 				async query(opts: { where?: Record<string, unknown>; orderBy?: Record<string, "asc" | "desc">; limit?: number } = {}) {
 					let items = [...reports.entries()].map(([id, data]) => ({ id, data }));
 
+					function matchesWhere(data: unknown, where: Record<string, unknown>): boolean {
+						return Object.entries(where).every(([k, v]) => {
+							const value = (data as Record<string, unknown>)[k];
+							if (v !== null && typeof v === "object" && !Array.isArray(v)) {
+								const range = v as { gt?: number; gte?: number; lt?: number; lte?: number };
+								if (range.gt !== undefined && !(Number(value) > range.gt)) return false;
+								if (range.gte !== undefined && !(Number(value) >= range.gte)) return false;
+								if (range.lt !== undefined && !(Number(value) < range.lt)) return false;
+								if (range.lte !== undefined && !(Number(value) <= range.lte)) return false;
+								return true;
+							}
+							return value === v;
+						});
+					}
+
 					if (opts.where) {
-						items = items.filter(({ data }) =>
-							Object.entries(opts.where!).every(
-								([k, v]) => (data as Record<string, unknown>)[k] === v,
-							),
-						);
+						items = items.filter(({ data }) => matchesWhere(data, opts.where!));
 					}
 
 					const [field, direction] = Object.entries(opts.orderBy ?? {})[0] ?? [];
@@ -88,6 +133,7 @@ export function createMockCtx(options: MockCtxOptions = {}) {
 				},
 			},
 		},
+		...(options.withoutContent ? {} : { content }),
 		log: {
 			debug: (message: string) => logs.push({ level: "debug", message }),
 			info: (message: string) => logs.push({ level: "info", message }),
@@ -98,5 +144,5 @@ export function createMockCtx(options: MockCtxOptions = {}) {
 		url: (path: string) => `https://cannelle.news${path}`,
 	} as unknown as PluginContext;
 
-	return { ctx, kv, reports, logs };
+	return { ctx, kv, reports, entries, updates, logs };
 }
