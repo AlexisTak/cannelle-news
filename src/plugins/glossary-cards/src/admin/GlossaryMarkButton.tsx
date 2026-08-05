@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { GlossaryTerm } from "../lib/types";
 import { apiFetch } from "./api";
+import styles from "./styles/Glossary.module.css";
 
 /**
  * Widget de champ minimal servant de point d'entrée pour taguer un terme.
@@ -31,7 +32,7 @@ export function GlossaryMarkButton({ label }: PluginFieldProps) {
 
 	useEffect(() => {
 		apiFetch<{ terms: GlossaryTerm[] }>("terms/list", {})
-			.then((res) => setTerms(res.terms))
+			.then((res) => setTerms(res.terms ?? []))
 			.catch(() => setTerms([]));
 	}, []);
 
@@ -52,34 +53,29 @@ export function GlossaryMarkButton({ label }: PluginFieldProps) {
 	}
 
 	return (
-		<div style={{ padding: 8 }}>
-			<span style={{ fontWeight: 600 }}>{label ?? "Insérer un terme de glossaire"}</span>
-			<p style={{ fontSize: "0.85rem", color: "#6b7280", margin: "4px 0 12px" }}>
-				Sélectionnez un terme, puis appliquez-le manuellement dans l'éditeur.
+		<div className={styles.root}>
+			<span className={styles.label}>{label ?? "Insérer un terme de glossaire"}</span>
+			<p className={styles.hint}>
+				Sélectionnez un terme : sa définition est copiée dans le presse-papier, prête à
+				être collée comme mark dans l'éditeur.
 			</p>
-			<div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+			<div className={styles.row}>
 				{terms.map((term) => (
 					<button
 						key={term.id}
 						type="button"
+						className={styles.button}
+						data-variant={selected === term.id ? "primary" : undefined}
 						onClick={() => copyPayload(term)}
-						style={{
-							padding: "4px 10px",
-							borderRadius: 4,
-							border: "1px solid #d1d5db",
-							background: selected === term.id ? "#e0e7ff" : "#fff",
-						}}
 						title={term.definition}
 					>
 						{term.term}
-						{copied && selected === term.id && <span style={{ marginLeft: 4 }}>✓</span>}
+						{copied && selected === term.id && <span> ✓</span>}
 					</button>
 				))}
 			</div>
 			{terms.length === 0 && (
-				<p style={{ fontSize: "0.85rem", color: "#9ca3af" }}>
-					Aucun terme. Créez-en dans la page Glossaire.
-				</p>
+				<p className={styles.empty}>Aucun terme. Créez-en dans la page Glossaire.</p>
 			)}
 		</div>
 	);

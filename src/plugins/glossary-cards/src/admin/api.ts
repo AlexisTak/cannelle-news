@@ -1,18 +1,27 @@
+import { apiFetch as emdashFetch } from "@emdash-cms/admin";
+
+const BASE = "/_emdash/api/plugins/glossary-cards";
+
 /**
- * Appelle les routes du plugin.
+ * Appelle une route du plugin.
  *
- * EmDash expose `apiFetch` via la page admin ; ici on reste sur fetch natif
- * pour ne pas ajouter de dépendance runtime.
+ * `apiFetch` ajoute l'en-tête `X-EmDash-Request` exigé par la protection CSRF
+ * d'EmDash : un `fetch` nu reçoit un 403.
+ *
+ * Les routes renvoient leur valeur dans l'enveloppe EmDash
+ * (`{ success: true, data }` / `{ success: false, error }`) : sans déballage,
+ * l'appelant reçoit l'enveloppe au lieu de la charge utile.
  */
 export async function apiFetch<T>(route: string, body: Record<string, unknown>): Promise<T> {
-	const res = await fetch(`/_emdash/api/plugins/glossary-cards/${route}`, {
+	const res = await emdashFetch(`${BASE}/${route}`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(body),
 	});
-	const data = (await res.json()) as { ok: boolean; data?: T; message?: string } | T;
-	if (typeof data === "object" && data !== null && "ok" in data && !data.ok) {
-		throw new Error((data as { message?: string }).message ?? "Erreur du plugin");
-	}
-	return data as T;
+	const payload = (await res.json()) as
+		| { success: true; data: T }
+		| { success: false; error: { code: string; message: string } };
+
+	if (!payload.success) throw new Error(payload.error.message || payload.error.code);
+	return payload.data;
 }

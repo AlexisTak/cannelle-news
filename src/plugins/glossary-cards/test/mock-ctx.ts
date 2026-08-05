@@ -7,6 +7,9 @@ export function createMockPluginContext(storage: Record<string, unknown> = {}) {
 		plugin: { id: "glossary-cards", version: "0.1.0" },
 		storage: {
 			terms: {
+				async get(id: string) {
+					return terms.get(id)?.data ?? null;
+				},
 				async putMany(items: Array<{ id: string; data: unknown }>) {
 					for (const item of items) terms.set(item.id, item);
 				},
