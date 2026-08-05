@@ -5,6 +5,9 @@ const styles = {
 	header: { marginBottom: 28 },
 	title: { fontSize: 30, lineHeight: 1.15, fontWeight: 750, margin: "0 0 8px" },
 	intro: { color: "var(--color-kumo-subtle)", margin: 0, maxWidth: 760 },
+	quickNav: { marginTop: 20, maxWidth: 520 },
+	quickNavLabel: { display: "block", fontSize: 13, fontWeight: 700, marginBottom: 7 },
+	select: { width: "100%", minHeight: 42, padding: "8px 38px 8px 12px", border: "1px solid var(--color-kumo-line)", borderRadius: 9, background: "var(--color-kumo-base)", color: "inherit", font: "inherit", cursor: "pointer" },
 	category: { marginTop: 32 },
 	categoryTitle: { fontSize: 19, fontWeight: 700, margin: "0 0 4px" },
 	categoryText: { color: "var(--color-kumo-subtle)", margin: "0 0 14px" },
@@ -18,10 +21,24 @@ const styles = {
 };
 
 export function AdminHubPage() {
+	const openPlugin = (event: { currentTarget: { value: string } }) => {
+		const target = event.currentTarget.value;
+		if (target) window.location.assign(target);
+	};
+
 	return <main style={styles.page}>
 		<header style={styles.header}>
 			<h1 style={styles.title}>Centre Cannelle</h1>
 			<p style={styles.intro}>Tous les outils éditoriaux sont regroupés par usage. Ouvrez un module pour travailler, ou sa configuration pour gérer ses règles et fournisseurs.</p>
+			<div style={styles.quickNav}>
+				<label htmlFor="cannelle-plugin-navigation" style={styles.quickNavLabel}>Accès rapide aux plugins</label>
+				<select id="cannelle-plugin-navigation" defaultValue="" onChange={openPlugin} style={styles.select}>
+					<option value="" disabled>Choisir un plugin Cannelle…</option>
+					{ADMIN_CATEGORIES.map((category) => <optgroup key={category.id} label={category.name}>
+						{category.tools.map((tool) => <option key={tool.id} value={tool.page}>{tool.name}</option>)}
+					</optgroup>)}
+				</select>
+			</div>
 		</header>
 		{ADMIN_CATEGORIES.map((category) => <section key={category.id} style={styles.category} aria-labelledby={`category-${category.id}`}>
 			<h2 id={`category-${category.id}`} style={styles.categoryTitle}>{category.name}</h2>
