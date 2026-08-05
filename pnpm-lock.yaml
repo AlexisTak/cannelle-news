@@ -14,6 +14,9 @@ importers:
       '@astrojs/react':
         specifier: ^6.0.0
         version: 6.0.2(@types/node@26.1.2)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(esbuild@0.28.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(yaml@2.9.0)
+      '@cannelle/plugin-admin-hub':
+        specifier: workspace:*
+        version: link:src/plugins/admin-hub
       '@cannelle/plugin-ai-editorial-assistant':
         specifier: workspace:*
         version: link:src/plugins/ai-editorial-assistant
@@ -81,6 +84,15 @@ importers:
       wrangler:
         specifier: ^4.99.0
         version: 4.115.0(@cloudflare/workers-types@4.20260702.1)
+
+  src/plugins/admin-hub:
+    dependencies:
+      emdash:
+        specifier: '>=0.30.0'
+        version: 0.30.0(@astrojs/react@6.0.2(@types/node@26.1.2)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(esbuild@0.28.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(yaml@2.9.0))(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.29.2(@tiptap/core@3.29.2(@tiptap/pm@3.29.2))(@tiptap/pm@3.29.2))(@tiptap/pm@3.29.2)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(astro@7.1.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.1.2)(yaml@2.9.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
 
   src/plugins/ai-editorial-assistant:
     dependencies:

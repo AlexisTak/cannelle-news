@@ -5,6 +5,7 @@ import { defineConfig, fontProviders } from "astro/config";
 import emdash from "emdash/astro";
 
 import { aiEditorialAssistantPlugin } from "./src/plugins/ai-editorial-assistant/src/index.ts";
+import { cannelleAdminHubPlugin } from "./src/plugins/admin-hub/src/index.ts";
 import { cannelleAnalyticsPlugin } from "./src/plugins/analytics/src/index.ts";
 import { autoInternalLinkerPlugin } from "./src/plugins/auto-internal-linker/src/index.ts";
 import { contentIntegrityPlugin } from "./src/plugins/content-integrity/src/index.ts";
@@ -60,6 +61,7 @@ export default defineConfig({
 			database: d1({ binding: "DB", session: "auto" }),
 			storage: r2({ binding: "MEDIA" }),
 			plugins: [
+				cannelleAdminHubPlugin(),
 				cannelleAnalyticsPlugin(),
 				researchPaperEmbedPlugin(),
 				seoProPlugin(),
@@ -81,6 +83,7 @@ export default defineConfig({
 	vite: {
 		optimizeDeps: {
 			include: [
+				"@cannelle/plugin-admin-hub",
 				"@cannelle/plugin-ai-editorial-assistant",
 				"@cannelle/plugin-analytics",
 				"@cannelle/plugin-auto-internal-linker",
@@ -99,6 +102,7 @@ export default defineConfig({
 		},
 		ssr: {
 			noExternal: [
+				"@cannelle/plugin-admin-hub",
 				"@cannelle/plugin-ai-editorial-assistant",
 				"@cannelle/plugin-analytics",
 				"@cannelle/plugin-auto-internal-linker",
