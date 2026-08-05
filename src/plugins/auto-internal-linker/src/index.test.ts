@@ -58,8 +58,10 @@ describe("autoInternalLinkerPlugin", () => {
 		expect(descriptor.fieldWidgets).toMatchObject([{ name: "suggestions" }]);
 	});
 
-	it("ne demande pas la capacité content:write", () => {
-		expect(createPlugin().capabilities).toEqual(["content:read", "taxonomies:read"]);
+	it("déclare les capacités requises par ses hooks dans les deux contextes", () => {
+		const expected = ["content:read", "content:write", "taxonomies:read"];
+		expect(autoInternalLinkerPlugin().capabilities).toEqual(expected);
+		expect(createPlugin().capabilities).toEqual(expected);
 	});
 });
 

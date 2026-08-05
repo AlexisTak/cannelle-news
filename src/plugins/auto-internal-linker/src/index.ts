@@ -21,6 +21,7 @@ export function autoInternalLinkerPlugin(): PluginDescriptor {
 		format: "native",
 		entrypoint: "@cannelle/plugin-auto-internal-linker",
 		adminEntry: "@cannelle/plugin-auto-internal-linker/admin",
+		capabilities: ["content:read", "content:write", "taxonomies:read"],
 		adminPages: [
 			{ path: "/settings", label: "Maillage interne", icon: "link" },
 			{ path: "/audit", label: "Audit de maillage", icon: "alert" },
@@ -48,7 +49,7 @@ export function createPlugin() {
 		// `content:write` n'est pas demandé : le plugin ne modifie jamais par
 		// `ctx.content.update()`. Le `content:beforeSave` retourne le contenu
 		// transformé dans le flux d'enregistrement normal.
-		capabilities: ["content:read", "taxonomies:read"],
+		capabilities: ["content:read", "content:write", "taxonomies:read"],
 
 		storage: {
 			keywords: {

@@ -3,7 +3,7 @@ import type { PluginDescriptor } from "emdash";
 export const CANNELLE_MEDIA_ID = "cannelle-media";
 export function cannelleMediaPlugin(): PluginDescriptor {
 	return { id: CANNELLE_MEDIA_ID, version: "0.1.0", format: "standard", entrypoint: "@cannelle/plugin-media/sandbox", options: {},
-		capabilities: ["media:read", "network:request:unrestricted"],
+		capabilities: ["media:read", "media:write", "network:request:unrestricted"],
 		storage: { assets: { indexes: ["mediaId", "mimeType", "status", "updatedAt"] }, versions: { indexes: ["mediaId", "version", "createdAt"] }, jobs: { indexes: ["mediaId", "type", "status", "createdAt"] }, auditLogs: { indexes: ["action", "createdAt"] } },
 		adminPages: [{ path: "/media", label: "Cannelle Media", icon: "image" }],
 		settingsSchema: {
