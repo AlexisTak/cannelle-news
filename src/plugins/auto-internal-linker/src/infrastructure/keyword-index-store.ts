@@ -13,10 +13,6 @@ interface KeywordCache {
 	items: IndexedKeyword[];
 }
 
-function yieldCpu(): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, 0));
-}
-
 interface StorageCollection {
 	putMany(items: Array<{ id: string; data: unknown }>): Promise<void>;
 	deleteMany(ids: string[]): Promise<number>;
@@ -106,6 +102,15 @@ export function createKeywordIndexStore(ctx: PluginContext): KeywordIndexStore {
 			}
 			await ctx.kv.set(CACHE_KEY, { expiresAt: Date.now() + CACHE_TTL_MS, items: keywords } satisfies KeywordCache);
 			return keywords;
+		},
+
+		async stream(consumer): Promise<void> {
+			let cursor: string | undefined;
+			do {
+				const page = await collection.query({ limit: PAGE_SIZE, cursor });
+				await consumer(page.items.map((item) => item.data as IndexedKeyword));
+				cursor = page.hasMore ? page.cursor : undefined;
+			} while (cursor);
 		},
 
 		count(): Promise<number> {

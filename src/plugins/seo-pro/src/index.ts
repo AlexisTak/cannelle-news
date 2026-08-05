@@ -9,12 +9,6 @@ import {
 	type FocusKeywordInput,
 } from "./routes/focus-keyword";
 import { settingsRouteHandler, settingsInputSchema, type SettingsInput } from "./routes/settings";
-import {
-	generateMetaRouteHandler,
-	generateMetaInputSchema,
-	type GenerateMetaInput,
-} from "./routes/generate-meta";
-import { applyMetaRouteHandler, applyMetaInputSchema, type ApplyMetaInput } from "./routes/apply-meta";
 import { loadSeoDocument } from "./infrastructure/content-loader";
 import { analyze } from "./analysis/analyze";
 import { createKvConfigStore } from "./infrastructure/kv-config";
@@ -46,10 +40,7 @@ export function createPlugin() {
 	return definePlugin({
 		id: "seo-pro",
 		version: "0.1.0",
-		// `content:write` est utilisé par la route `apply-meta` qui écrit dans le
-		// panneau SEO natif (`seo.title` / `seo.description`), jamais dans les
-		// champs de contenu.
-		capabilities: ["content:read", "content:write"],
+		capabilities: ["content:read", "media:read", "taxonomies:read"],
 
 		storage: {
 			reports: {
@@ -89,14 +80,6 @@ export function createPlugin() {
 			settings: {
 				input: settingsInputSchema,
 				handler: async (ctx) => settingsRouteHandler(ctx.input as SettingsInput, ctx),
-			},
-			"generate-meta": {
-				input: generateMetaInputSchema,
-				handler: async (ctx) => generateMetaRouteHandler(ctx.input as GenerateMetaInput, ctx),
-			},
-			"apply-meta": {
-				input: applyMetaInputSchema,
-				handler: async (ctx) => applyMetaRouteHandler(ctx.input as ApplyMetaInput, ctx),
 			},
 		},
 

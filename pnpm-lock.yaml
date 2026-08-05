@@ -143,9 +143,6 @@ importers:
 
   src/plugins/content-integrity:
     dependencies:
-      '@cannelle/shared-utils':
-        specifier: workspace:*
-        version: link:../shared-utils
       '@emdash-cms/admin':
         specifier: '>=0.30.0'
         version: 0.30.0(@atcute/identity@2.0.2(@atcute/lexicons@2.0.3)(typescript@6.0.3))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.29.2(@tiptap/core@3.29.2(@tiptap/pm@3.29.2))(@tiptap/pm@3.29.2))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.11)(prosemirror-state@1.4.4)(prosemirror-view@1.42.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3)(zod@4.4.3)
@@ -265,9 +262,6 @@ importers:
 
   src/plugins/plugin-core:
     dependencies:
-      '@cannelle/shared-utils':
-        specifier: workspace:*
-        version: link:../shared-utils
       emdash:
         specifier: '>=0.30.0'
         version: 0.30.0(@astrojs/react@6.0.2(@types/node@26.1.2)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(esbuild@0.28.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(yaml@2.9.0))(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.29.2(@tiptap/core@3.29.2(@tiptap/pm@3.29.2))(@tiptap/pm@3.29.2))(@tiptap/pm@3.29.2)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(astro@7.1.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.1.2)(yaml@2.9.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3)

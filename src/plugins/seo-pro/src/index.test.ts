@@ -24,14 +24,11 @@ const flatEvent = (collection: string) => ({
 	} as Record<string, unknown>,
 });
 
-function hookHandler(name: "content:afterSave" | "content:afterUnpublish" | "content:afterDelete") {
+function hookHandler() {
 	const plugin = createPlugin() as unknown as {
-		hooks: Record<
-			string,
-			{ handler: (e: unknown, c: PluginContext) => Promise<void> }
-		>;
+		hooks: { "content:afterSave": { handler: (e: unknown, c: PluginContext) => Promise<void> } };
 	};
-	return plugin.hooks[name].handler;
+	return plugin.hooks["content:afterSave"].handler;
 }
 
 function lifecycleHandler(name: "content:afterUnpublish" | "content:afterDelete") {
@@ -61,16 +58,13 @@ describe("createPlugin", () => {
 	it("declares the capabilities the code actually uses", () => {
 		const plugin = createPlugin() as unknown as { capabilities: string[] };
 		expect(plugin.capabilities).toContain("content:read");
-		expect(plugin.capabilities).toContain("content:write");
 	});
 
 	it("registers every route the admin UI calls", () => {
 		const plugin = createPlugin() as unknown as { routes: Record<string, unknown> };
 		expect(Object.keys(plugin.routes).sort()).toEqual([
 			"analyze",
-			"apply-meta",
 			"focus-keyword",
-			"generate-meta",
 			"report",
 			"reports",
 			"settings",
@@ -81,7 +75,7 @@ describe("createPlugin", () => {
 describe("content:afterSave hook", () => {
 	it("stores a report for an analysable collection", async () => {
 		const { ctx, reports } = createMockCtx();
-		await hookHandler("content:afterSave")(flatEvent("posts"), ctx);
+		await hookHandler()(flatEvent("posts"), ctx);
 
 		const stored = reports.get("01HOOK") as { entryId: string; engineVersion: string } | undefined;
 		expect(stored).toBeDefined();
@@ -91,7 +85,7 @@ describe("content:afterSave hook", () => {
 
 	it("reads the flat event shape without a .data unwrap", async () => {
 		const { ctx, reports } = createMockCtx();
-		await hookHandler("content:afterSave")(flatEvent("posts"), ctx);
+		await hookHandler()(flatEvent("posts"), ctx);
 		const stored = reports.get("01HOOK") as { title: string; metrics: { h2Count: number } };
 		expect(stored.title).toBe("Un titre suffisamment long pour la règle");
 		expect(stored.metrics.h2Count).toBe(1);
@@ -99,13 +93,13 @@ describe("content:afterSave hook", () => {
 
 	it("skips a collection outside analyzableCollections", async () => {
 		const { ctx, reports } = createMockCtx();
-		await hookHandler("content:afterSave")(flatEvent("authors"), ctx);
+		await hookHandler()(flatEvent("authors"), ctx);
 		expect(reports.size).toBe(0);
 	});
 
 	it("honours a manual focus keyword stored in KV", async () => {
 		const { ctx, reports } = createMockCtx({ kv: { "focus:01HOOK": "partie" } });
-		await hookHandler("content:afterSave")(flatEvent("posts"), ctx);
+		await hookHandler()(flatEvent("posts"), ctx);
 		const stored = reports.get("01HOOK") as { focusKeyword: string; focusKeywordSource: string };
 		expect(stored.focusKeyword).toBe("partie");
 		expect(stored.focusKeywordSource).toBe("manual");
@@ -115,7 +109,7 @@ describe("content:afterSave hook", () => {
 		const { ctx, reports } = createMockCtx();
 		const event = flatEvent("posts");
 		delete event.content.id;
-		await hookHandler("content:afterSave")(event, ctx);
+		await hookHandler()(event, ctx);
 		expect(reports.size).toBe(0);
 	});
 });

@@ -8,5 +8,6 @@ export interface KeywordIndexStore {
 	purgeCollectionPage(collection: string): Promise<{ deleted: number; hasMore: boolean }>;
 	/** Toutes les entrées, pour construire le trie. */
 	all(): Promise<IndexedKeyword[]>;
+	stream(consumer: (page: IndexedKeyword[]) => void | Promise<void>): Promise<void>;
 	count(): Promise<number>;
 }

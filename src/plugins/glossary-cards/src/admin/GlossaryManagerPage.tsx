@@ -61,12 +61,6 @@ function toDraft(term: GlossaryTerm): Draft {
 	};
 }
 
-/**
- * Page de gestion du glossaire.
- *
- * Composant sans props : `PluginAdminModule` monte les pages de plugin comme
- * des `ComponentType` nus.
- */
 export function GlossaryManagerPage() {
 	const [terms, setTerms] = useState<GlossaryTerm[]>([]);
 	const [query, setQuery] = useState("");
@@ -493,5 +487,3 @@ export function GlossaryManagerPage() {
 		</div>
 	);
 }
-
-export default GlossaryManagerPage;

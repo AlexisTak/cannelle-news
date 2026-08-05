@@ -17,12 +17,7 @@ interface Health {
 export function HealthWidget() {
 	const [health, setHealth] = useState<Health | null>(null);
 	const loadTask = useAsyncTask<Health>();
-	const rebuildTask = useAsyncTask<{
-		entriesProcessed: number;
-		keywordsIndexed: number;
-		orphansPurged: number;
-		publishedCount: number;
-	}>();
+	const rebuildTask = useAsyncTask<Awaited<ReturnType<typeof rebuildIndex>>>();
 
 	useEffect(() => {
 		loadTask.run(async () => {
@@ -37,9 +32,10 @@ export function HealthWidget() {
 	async function handleRebuild() {
 		const result = await rebuildTask.run(() => rebuildIndex());
 		if (result) {
+			const refreshed = await fetchLinkerHealth();
 			setHealth({
-				indexSize: result.keywordsIndexed,
-				publishedCount: result.publishedCount,
+				indexSize: refreshed.indexSize,
+				publishedCount: refreshed.publishedCount,
 			});
 			loadTask.announce(`Index reconstruit : ${result.entriesProcessed} articles, ${result.keywordsIndexed} mots-clés.`);
 		}

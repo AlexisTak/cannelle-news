@@ -4,7 +4,7 @@ import { z } from "astro/zod";
 import { identify } from "./lib/identify";
 import { fetchArxiv } from "./lib/arxiv";
 import { fetchCrossref } from "./lib/crossref";
-import type { LookupResult, PaperMetadata, PluginContext } from "./lib/types";
+import type { LookupResult, PluginContext } from "./lib/types";
 
 export interface ResearchPaperEmbedOptions extends Record<string, unknown> {
   staleDays?: number;
@@ -13,25 +13,11 @@ export interface ResearchPaperEmbedOptions extends Record<string, unknown> {
 export interface LookupInput {
   url: string;
   force?: boolean;
-  current?: PaperMetadata;
 }
-
-const paperMetadataSchema = z.object({
-  source: z.enum(["arxiv", "crossref"]),
-  sourceId: z.string(),
-  title: z.string(),
-  authors: z.array(z.string()),
-  publishedDate: z.string().nullable(),
-  abstract: z.string(),
-  pdfUrl: z.string().nullable(),
-  doi: z.string().nullable(),
-  fetchedAt: z.string(),
-});
 
 const lookupInputSchema = z.object({
   url: z.string().min(1),
   force: z.boolean().default(false),
-  current: paperMetadataSchema.optional(),
 });
 
 const researchPaperBlocks: NonNullable<PluginDescriptor["portableTextBlocks"]> = [
@@ -52,10 +38,6 @@ export async function lookupHandler(
   ctx: PluginContext,
   staleDays = 7,
 ): Promise<LookupResult> {
-  if (!input.force && input.current && isFreshEnough(input.current, staleDays)) {
-    return { ok: true, paper: input.current };
-  }
-
   const id = identify(input.url);
   if (!id.source) return { ok: false, reason: "unrecognized" };
   const cacheKey = `paper:${id.source}:${id.id}`;
