@@ -2,7 +2,8 @@ import { z } from "astro/zod";
 import type { PluginContext } from "emdash";
 import { isInternalHref } from "../content/link-classifier";
 import { collectLinkHrefs, collectLinkableSpans } from "../content/spans";
-import { pickWinners } from "../domain/rules/arbitrate";
+import { compareCandidates } from "../domain/rules/arbitrate";
+import type { IndexedKeyword } from "../domain/keyword-entry";
 import type { Suggestion } from "../domain/suggestion";
 import { contentItemToEntry, toLinkerEntry } from "../infrastructure/content-loader";
 import { createKeywordIndexStore } from "../infrastructure/keyword-index-store";
@@ -45,14 +46,25 @@ export async function suggestRouteHandler(
 	const config = await createKvConfigStore(ctx).get();
 	const entry = toLinkerEntry(contentItemToEntry(item), input.collection);
 
-	const indexed = await createKeywordIndexStore(ctx).all();
-	if (indexed.length === 0) return { suggestions: [], indexEmpty: true, analyzedAt };
+	const winners = new Map<string, IndexedKeyword>();
+	let indexEmpty = true;
 
-	// L'auto-lien est écarté ici, avant le balayage : inutile de chercher des
-	// occurrences qu'on rejetterait ensuite.
-	const others = indexed.filter((keyword) => keyword.targetId !== entry.id);
+	await createKeywordIndexStore(ctx).stream((page) => {
+		if (page.length > 0) indexEmpty = false;
+		for (const keyword of page) {
+			// L'auto-lien est écarté ici, avant le balayage.
+			if (keyword.targetId === entry.id) continue;
+			const current = winners.get(keyword.normalized);
+			if (!current || compareCandidates(keyword, current) < 0) {
+				winners.set(keyword.normalized, keyword);
+			}
+		}
+	});
+
+	if (indexEmpty) return { suggestions: [], indexEmpty: true, analyzedAt };
+
 	const trie = buildTrie(
-		pickWinners(others).map((keyword) => ({ key: keyword.normalized, value: keyword })),
+		[...winners.values()].map((keyword) => ({ key: keyword.normalized, value: keyword })),
 	);
 
 	const occurrences = scanSpans(collectLinkableSpans(entry.body), trie);

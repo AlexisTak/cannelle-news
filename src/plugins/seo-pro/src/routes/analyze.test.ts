@@ -53,7 +53,7 @@ describe("analyze route", () => {
 	});
 
 	it("throws when the content capability is missing", async () => {
-		const { ctx } = createMockCtx();
+		const { ctx } = createMockCtx({ withoutContent: true });
 		await expect(
 			analyzeRouteHandler({ collection: "posts", id: "01ENTRY" }, ctx),
 		).rejects.toThrow("content:read");

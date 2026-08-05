@@ -1,4 +1,4 @@
-import type { SeoReport } from "../domain/report";
+import type { Grade, SeoReport } from "../domain/report";
 
 export interface ReportQuery {
 	collection?: string;

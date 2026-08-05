@@ -53,4 +53,11 @@ describe("fetchArxiv", () => {
     if (result.ok) return;
     expect(["parse", "not-found"]).toContain(result.reason);
   });
+
+  it("treats an arXiv error entry as not-found", async () => {
+    const errorXml = `\n      <?xml version="1.0" encoding="utf-8"?>\n      <feed xmlns="http://www.w3.org/2005/Atom"\n            xmlns:arxiv="http://arxiv.org/schemas/atom"\n            xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"\n            xmlns:api="http://export.arxiv.org/api/query?method=GET"\n      >\n        <entry>\n          <title>Error</title>\n          <summary>Unknown identifier: 9999.99999.</summary>\n        </entry>\n      </feed>\n    `;
+    const ctx = mockCtx(errorXml);
+    const result = await fetchArxiv("9999.99999", ctx);
+    expect(result).toEqual({ ok: false, reason: "not-found" });
+  });
 });

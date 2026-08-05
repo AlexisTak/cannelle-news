@@ -58,6 +58,16 @@ export async function deleteTermRouteHandler(input: { id: string }, ctx: PluginC
 	return { ok: true };
 }
 
+async function uniqueSlug(store: ReturnType<typeof createGlossaryStore>, term: string): Promise<string> {
+	const base = slugify(term);
+	let id = base;
+	let counter = 2;
+	while (await store.get(id)) {
+		id = `${base}-${counter++}`;
+	}
+	return id;
+}
+
 function slugify(term: string): string {
 	return term
 		.toLowerCase()

@@ -29,6 +29,7 @@ describe("rebuildRouteHandler", () => {
 		expect(output.status).toBe("complete");
 		expect(output.entriesProcessed).toBe(2);
 		expect(output.keywordsIndexed).toBeGreaterThan(0);
+		expect(output.orphansPurged).toBe(0);
 		expect(await createKeywordIndexStore(ctx).count()).toBe(output.keywordsIndexed);
 	});
 

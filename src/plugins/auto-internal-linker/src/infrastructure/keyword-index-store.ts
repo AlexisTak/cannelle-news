@@ -13,6 +13,10 @@ interface KeywordCache {
 	items: IndexedKeyword[];
 }
 
+function yieldCpu(): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 interface StorageCollection {
 	putMany(items: Array<{ id: string; data: unknown }>): Promise<void>;
 	deleteMany(ids: string[]): Promise<number>;
@@ -93,7 +97,9 @@ export function createKeywordIndexStore(ctx: PluginContext): KeywordIndexStore {
 				const page = await collection.query({ limit: Math.min(PAGE_SIZE, remaining), cursor });
 				keywords.push(...page.items.map((item) => item.data as IndexedKeyword));
 				cursor = page.cursor;
+				if (cursor) await yieldCpu();
 			} while (cursor);
+		},
 
 			if (cursor) {
 				ctx.log.warn(`[auto-internal-linker] index tronqué à ${MAX_INDEX_ENTRIES} mots-clés pour une suggestion`);

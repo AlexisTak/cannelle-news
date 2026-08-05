@@ -2,6 +2,8 @@ import { apiFetch } from "@emdash-cms/admin";
 import type { SeoReport } from "../domain/report";
 import type { ReportSummary } from "../routes/reports";
 import type { SeoConfig } from "../analysis/config";
+import type { GenerateMetaOutput } from "../routes/generate-meta";
+import type { ApplyMetaOutput } from "../routes/apply-meta";
 
 const BASE = "/_emdash/api/plugins/seo-pro";
 
@@ -68,4 +70,16 @@ export function saveSeoConfig(patch: {
 	return call<SeoConfig>("settings", { patch });
 }
 
-export type { SeoReport, ReportSummary, SeoConfig };
+export function generateMeta(collection: string, id: string): Promise<GenerateMetaOutput> {
+	return call<GenerateMetaOutput>("generate-meta", { collection, id });
+}
+
+export function applyMeta(
+	collection: string,
+	id: string,
+	meta: { title?: string; description?: string },
+): Promise<ApplyMetaOutput> {
+	return call<ApplyMetaOutput>("apply-meta", { collection, id, ...meta });
+}
+
+export type { SeoReport, ReportSummary, SeoConfig, GenerateMetaOutput };
