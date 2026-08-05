@@ -5,8 +5,8 @@ import { ScoreGauge } from "../components/ScoreGauge";
 import { MetricCard } from "../components/MetricCard";
 import { IssueList } from "../components/IssueList";
 import { KeywordDensityBar } from "../components/KeywordDensityBar";
-import { fetchReport, reanalyze, setFocusKeyword } from "../api";
-import type { SeoReport } from "../api";
+import { fetchReport, reanalyze, setFocusKeyword, generateMeta, applyMeta } from "../api";
+import type { SeoReport, GenerateMetaOutput } from "../api";
 import type { MetricStatus } from "../components/MetricCard";
 
 function densityStatus(density: number, hasFocus: boolean): MetricStatus {
@@ -30,6 +30,8 @@ export function EntryReportPage() {
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [keyword, setKeyword] = useState("");
+	const [generated, setGenerated] = useState<GenerateMetaOutput | null>(null);
+	const [applied, setApplied] = useState(false);
 
 	const load = useCallback(async () => {
 		setStatus("loading");
@@ -55,6 +57,37 @@ export function EntryReportPage() {
 			setReport(r);
 			setKeyword(r.focusKeyword ?? "");
 			setError("");
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Erreur inconnue");
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	async function handleGenerate() {
+		setBusy(true);
+		setError("");
+		setApplied(false);
+		try {
+			const result = await generateMeta(collection, id);
+			setGenerated(result);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Erreur inconnue");
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	async function handleApply() {
+		if (!generated) return;
+		setBusy(true);
+		setError("");
+		try {
+			await applyMeta(collection, id, {
+				title: generated.generated.title,
+				description: generated.generated.description,
+			});
+			setApplied(true);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Erreur inconnue");
 		} finally {
@@ -151,6 +184,54 @@ export function EntryReportPage() {
 								{k}
 							</button>
 						))}
+					</div>
+				)}
+			</section>
+
+			<section className={styles.section}>
+				<h3 className={styles.sectionTitle}>Génération de meta</h3>
+				<div className={styles.focusRow}>
+					<button
+						type="button"
+						className={styles.button}
+						disabled={busy}
+						onClick={() => void handleGenerate()}
+					>
+						{busy ? "Génération…" : "Générer title + meta"}
+					</button>
+					{generated && (
+						<button
+							type="button"
+							className={styles.button}
+							disabled={busy}
+							onClick={() => void handleApply()}
+						>
+							Appliquer au panneau SEO
+						</button>
+					)}
+				</div>
+				{applied && (
+					<p className={styles.source}>
+						Meta appliquée. Recharge l'éditeur pour la voir dans le panneau SEO.
+					</p>
+				)}
+				{generated && (
+					<div className={styles.generatedBox}>
+						<div className={styles.generatedField}>
+							<span className={styles.generatedLabel}>Title suggéré ({generated.generated.title.length} car.)</span>
+							<p className={styles.generatedValue}>{generated.generated.title}</p>
+						</div>
+						<div className={styles.generatedField}>
+							<span className={styles.generatedLabel}>Meta description suggérée ({generated.generated.description.length} car.)</span>
+							<p className={styles.generatedValue}>{generated.generated.description}</p>
+						</div>
+						<div className={styles.generatedField}>
+							<span className={styles.generatedLabel}>OpenGraph / Twitter</span>
+							<p className={styles.generatedValue}>
+								Type : {generated.generated.openGraph.type} · Card : {generated.generated.twitter.card}
+								{generated.generated.openGraph.image && " · Image : " + generated.generated.openGraph.image}
+							</p>
+						</div>
 					</div>
 				)}
 			</section>

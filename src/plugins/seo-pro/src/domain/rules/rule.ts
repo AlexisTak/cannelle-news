@@ -3,6 +3,7 @@ import type { Issue } from "../report";
 
 export interface RuleEnv {
 	focusKeyword: string | null;
+	siteUrl?: string | null;
 }
 
 export interface RuleResult {
