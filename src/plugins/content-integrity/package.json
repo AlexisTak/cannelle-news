@@ -1,0 +1,16 @@
+{
+  "name": "@cannelle/plugin-content-integrity",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./admin": "./src/admin.tsx"
+  },
+  "peerDependencies": {
+    "emdash": ">=0.30.0",
+    "react": "^19.0.0",
+    "@emdash-cms/admin": "*"
+  }
+}
