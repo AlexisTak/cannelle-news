@@ -1,4 +1,5 @@
 ---
+import { toSafeJsonLd } from "@cannelle/shared-utils";
 import type { ResearchPaperBlock } from "../lib/types";
 
 interface Props {
@@ -31,4 +32,4 @@ const jsonLd = unique.map((p) => ({
 }));
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+<script type="application/ld+json" set:html={toSafeJsonLd(jsonLd)} is:inline />
