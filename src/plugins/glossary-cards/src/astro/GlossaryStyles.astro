@@ -23,13 +23,13 @@
     position: absolute;
     z-index: 50;
     max-width: 320px;
-    padding: 12px 14px;
-    border-radius: 8px;
-    background: #1f2937;
-    color: #f9fafb;
-    font-size: 0.875rem;
+    padding: var(--sp-3, 12px) var(--sp-4, 14px);
+    border-radius: var(--radius, 8px);
+    background: var(--color-ink, #1f2937);
+    color: var(--color-surface, #f9fafb);
+    font-family: var(--font-meta, inherit);
+    font-size: var(--fs-caption, 0.875rem);
     line-height: 1.5;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
     pointer-events: none;
     opacity: 0;
     transform: translateY(6px);
@@ -47,10 +47,10 @@
     margin-left: -6px;
     border-width: 6px;
     border-style: solid;
-    border-color: #1f2937 transparent transparent transparent;
+    border-color: var(--color-ink, #1f2937) transparent transparent transparent;
   }
   .glossary-tooltip a {
-    color: #93c5fd;
+    color: var(--color-accent-light, #93c5fd);
     text-decoration: underline;
     pointer-events: auto;
   }

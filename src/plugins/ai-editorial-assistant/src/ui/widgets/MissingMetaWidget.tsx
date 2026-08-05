@@ -8,6 +8,7 @@ interface MissingMetaData {
 	withoutTldr: number;
 	withoutMetaDescription: number;
 	withoutSeoTitle: number;
+	hasMore: boolean;
 	items: Array<{
 		collection: string;
 		id: string;
@@ -39,7 +40,7 @@ export function MissingMetaWidget() {
 			{task.data ? (
 				<>
 					<p className={styles.hint}>
-						<strong>{task.data.articlesChecked}</strong> articles analysés
+						<strong>{task.data.articlesChecked}</strong> articles analysés sur cette page{task.data.hasMore ? " (d’autres articles restent à parcourir)" : ""}
 					</p>
 					<ul className={styles.proposals}>
 						<li className={styles.proposal}>

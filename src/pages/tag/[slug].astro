@@ -1,7 +1,9 @@
 ---
 import { getTerm, getEmDashCollection, decodeSlug } from "emdash";
-import { Image } from "emdash/ui";
 import Base from "../../layouts/Base.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import CardGrid from "../../components/CardGrid.astro";
+import { formatPostCount } from "../../utils/format";
 
 const slug = decodeSlug(Astro.params.slug);
 const term = slug ? await getTerm("tag", slug) : null;
@@ -17,29 +19,63 @@ const { entries: posts } = await getEmDashCollection("posts", {
 ---
 
 <Base
-	title={`Posts tagged "${term.label}"`}
-	description={`Posts tagged ${term.label}`}
+	title={`Articles sur « ${term.label} »`}
+	description={`Articles portant l'étiquette ${term.label}`}
+	compactHeader
 >
-	<h1>Tag: {term.label}</h1>
-	<p>{posts.length} {posts.length === 1 ? "post" : "posts"}</p>
+	<div class="listing">
+		<header class="listing__header">
+			<p class="listing__eyebrow">Sujet</p>
+			<h1>{term.label}</h1>
+			<p class="listing__count">{formatPostCount(posts.length)}</p>
+		</header>
 
-	{
-		posts.length === 0 ? (
-			<p>No posts with this tag yet.</p>
-		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<Image image={post.data.featured_image} />
-							)}
-							<h2>{post.data.title}</h2>
-						</a>
-						{post.data.excerpt && <p>{post.data.excerpt}</p>}
-					</li>
-				))}
-			</ul>
-		)
-	}
+		{
+			posts.length === 0 ? (
+				<p>Aucun article sur ce sujet pour le moment.</p>
+			) : (
+				<CardGrid columns={3}>
+					{posts.map((post) => (
+						<ArticleCard post={post} variant="standard" headingLevel={2} />
+					))}
+				</CardGrid>
+			)
+		}
+	</div>
 </Base>
+
+<style>
+	.listing {
+		max-width: var(--w-page);
+		margin-inline: auto;
+		padding: var(--sp-8) var(--gutter) 0;
+	}
+
+	.listing__header {
+		margin-block-end: var(--sp-8);
+		padding-block-end: var(--sp-4);
+		border-block-end: 3px solid var(--color-ink);
+	}
+
+	.listing__eyebrow {
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-accent);
+	}
+
+	.listing__header h1 {
+		font-size: var(--fs-h1);
+	}
+
+	.listing__count {
+		margin-block-start: var(--sp-2);
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink-muted);
+	}
+</style>

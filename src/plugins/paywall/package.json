@@ -1,0 +1,1 @@
+{"name":"@cannelle/plugin-paywall","version":"0.1.0","type":"module","private":true,"exports":{".":"./src/index.ts","./sandbox":"./src/sandbox-entry.ts"},"dependencies":{"@cannelle/plugin-core":"workspace:*","@emdash-cms/blocks":"0.30.0","zod":"^4.4.1"},"peerDependencies":{"emdash":">=0.30.0"}}

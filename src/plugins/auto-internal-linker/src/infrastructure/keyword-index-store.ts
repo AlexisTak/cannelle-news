@@ -4,6 +4,14 @@ import type { KeywordIndexStore } from "../ports/keyword-index";
 
 /** Taille de page des lectures paginées. */
 const PAGE_SIZE = 100;
+const MAX_INDEX_ENTRIES = 5_000;
+const CACHE_TTL_MS = 60_000;
+const CACHE_KEY = "cache:keyword-index:v1";
+
+interface KeywordCache {
+	expiresAt: number;
+	items: IndexedKeyword[];
+}
 
 function yieldCpu(): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, 0));
@@ -22,6 +30,7 @@ interface StorageCollection {
 
 export function createKeywordIndexStore(ctx: PluginContext): KeywordIndexStore {
 	const collection = (ctx.storage as unknown as Record<string, StorageCollection>).keywords;
+	const invalidateCache = () => ctx.kv.delete(CACHE_KEY);
 
 	async function idsForTarget(targetId: string): Promise<string[]> {
 		const ids: string[] = [];
@@ -56,55 +65,46 @@ export function createKeywordIndexStore(ctx: PluginContext): KeywordIndexStore {
 					data: keyword,
 				})),
 			);
+			await invalidateCache();
 		},
 
 		async purgeTarget(targetId: string): Promise<number> {
 			const ids = await idsForTarget(targetId);
 			if (ids.length === 0) return 0;
-			return collection.deleteMany(ids);
+			const deleted = await collection.deleteMany(ids);
+			await invalidateCache();
+			return deleted;
 		},
 
-		async purgeOrphans(keepTargetIds: Set<string>): Promise<number> {
-			const orphans = new Set<string>();
+		async purgeCollectionPage(targetCollection: string) {
+			const page = await collection.query({ where: { targetCollection }, limit: PAGE_SIZE });
+			if (!page.items.length) return { deleted: 0, hasMore: false };
+			const deleted = await collection.deleteMany(page.items.map((item) => item.id));
+			await invalidateCache();
+			return { deleted, hasMore: page.hasMore };
+		},
+
+		async all(): Promise<IndexedKeyword[]> {
+			const cached = await ctx.kv.get<KeywordCache>(CACHE_KEY);
+			if (cached && cached.expiresAt > Date.now()) return cached.items;
+
+			const keywords: IndexedKeyword[] = [];
 			let cursor: string | undefined;
 
 			do {
-				const page = await collection.query({ limit: PAGE_SIZE, cursor });
-				for (const item of page.items) {
-					const keyword = item.data as IndexedKeyword;
-					if (!keepTargetIds.has(keyword.targetId)) {
-						orphans.add(keyword.targetId);
-					}
-				}
-				cursor = page.cursor ?? undefined;
-			} while (cursor);
-
-			let total = 0;
-			for (const targetId of orphans) {
-				total += await store.purgeTarget(targetId);
-			}
-			return total;
-		},
-
-		async stream(
-			callback: (page: IndexedKeyword[]) => void | Promise<void>,
-		): Promise<void> {
-			let cursor: string | undefined;
-
-			do {
-				const page = await collection.query({ limit: PAGE_SIZE, cursor });
-				const keywords = page.items.map((item) => item.data as IndexedKeyword);
-				await callback(keywords);
+				const remaining = MAX_INDEX_ENTRIES - keywords.length;
+				if (remaining <= 0) break;
+				const page = await collection.query({ limit: Math.min(PAGE_SIZE, remaining), cursor });
+				keywords.push(...page.items.map((item) => item.data as IndexedKeyword));
 				cursor = page.cursor;
 				if (cursor) await yieldCpu();
 			} while (cursor);
 		},
 
-		async all(): Promise<IndexedKeyword[]> {
-			const keywords: IndexedKeyword[] = [];
-			await store.stream((page) => {
-				keywords.push(...page);
-			});
+			if (cursor) {
+				ctx.log.warn(`[auto-internal-linker] index tronqué à ${MAX_INDEX_ENTRIES} mots-clés pour une suggestion`);
+			}
+			await ctx.kv.set(CACHE_KEY, { expiresAt: Date.now() + CACHE_TTL_MS, items: keywords } satisfies KeywordCache);
 			return keywords;
 		},
 

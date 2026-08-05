@@ -1,0 +1,37 @@
+---
+interface Props { listId?: string; title?: string; buttonLabel?: string; class?: string }
+const { listId = "main", title = "Recevez notre newsletter", buttonLabel = "S'inscrire", class: className } = Astro.props;
+---
+<form class:list={["newsletter-signup", className]} data-cannelle-newsletter data-list-id={listId}>
+	<h2>{title}</h2>
+	<label for={`newsletter-email-${listId}`}>Adresse e-mail</label>
+	<div class="newsletter-signup__row">
+		<input id={`newsletter-email-${listId}`} name="email" type="email" autocomplete="email" required />
+		<button type="submit">{buttonLabel}</button>
+	</div>
+	<p class="newsletter-signup__status" role="status" aria-live="polite"></p>
+</form>
+<script>
+	document.querySelectorAll<HTMLFormElement>("[data-cannelle-newsletter]").forEach((form) => {
+		if (form.dataset.mounted) return; form.dataset.mounted = "true";
+		form.addEventListener("submit", async (event) => {
+			event.preventDefault(); const email = new FormData(form).get("email"); const button = form.querySelector<HTMLButtonElement>("button")!; const status = form.querySelector<HTMLElement>("[role=status]")!;
+			button.disabled = true; status.textContent = "Inscription en cours…";
+			try {
+				const response = await fetch("/_emdash/api/plugins/cannelle-newsletter/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, listId: form.dataset.listId, source: "website" }) });
+				if (!response.ok) throw new Error("L'inscription a échoué."); const data = await response.json() as { pending: boolean }; form.reset();
+				status.textContent = data.pending ? "Consultez votre boîte e-mail pour confirmer votre inscription." : "Votre inscription est confirmée.";
+				document.dispatchEvent(new CustomEvent("cannelle:newsletter-subscribed", { detail: { listId: form.dataset.listId } }));
+			} catch (error) { status.textContent = error instanceof Error ? error.message : "L'inscription a échoué."; } finally { button.disabled = false; }
+		});
+	});
+</script>
+<style>
+	.newsletter-signup { display: grid; gap: 0.75rem; max-width: 36rem; }
+	.newsletter-signup h2, .newsletter-signup__status { margin: 0; }
+	.newsletter-signup label { font-family: var(--font-meta, sans-serif); font-weight: 600; }
+	.newsletter-signup__row { display: flex; gap: 0.5rem; }
+	.newsletter-signup input { min-width: 0; flex: 1; padding: 0.75rem; border: 1px solid var(--color-rule, #bbb); font: inherit; }
+	.newsletter-signup button { padding: 0.75rem 1rem; border: 0; background: var(--color-ink, #111); color: var(--color-surface, #fff); font-weight: 700; }
+	.newsletter-signup__status { font-family: var(--font-meta, sans-serif); font-size: 0.9rem; }
+</style>

@@ -1,7 +1,10 @@
 ---
 import { getEmDashCollection, getSiteSettings } from "emdash";
-import { Image } from "emdash/ui";
+import { WidgetArea } from "emdash/ui";
 import Base from "../layouts/Base.astro";
+import ArticleCard from "../components/ArticleCard.astro";
+import CardGrid from "../components/CardGrid.astro";
+import SectionHeading from "../components/SectionHeading.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
@@ -9,40 +12,139 @@ const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
 });
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(await getSiteSettings());
 if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+// Découpage piloté par la date de publication, pas par les rubriques : le seed
+// ne garantit aucune rubrique peuplée.
+const [lead, ...rest] = posts;
+const secondary = rest.slice(0, 3);
+const remainder = rest.slice(3);
 ---
 
 <Base title={siteTitle} description={siteTagline}>
-	<h1>Recent Posts</h1>
-
 	{
 		posts.length === 0 ? (
-			<p>
-				No posts yet.{" "}
-				<a href="/_emdash/admin/content/posts/new">Create one</a>.
+			<p class="empty">
+				Aucun article pour le moment.{" "}
+				<a href="/_emdash/admin/content/posts/new">En créer un</a>.
 			</p>
 		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<Image image={post.data.featured_image} />
-							)}
-							<h2>{post.data.title}</h2>
-						</a>
-						{post.data.excerpt && <p>{post.data.excerpt}</p>}
-						{post.data.publishedAt && (
-							<time datetime={post.data.publishedAt.toISOString()}>
-								{post.data.publishedAt.toLocaleDateString("en-US", {
-									year: "numeric",
-									month: "long",
-									day: "numeric",
-								})}
-							</time>
-						)}
-					</li>
-				))}
-			</ul>
+			<div class="home">
+				<section class="home__top">
+					<div class="home__lead">
+						<ArticleCard post={lead} variant="lead" headingLevel={2} />
+					</div>
+					<aside class="home__rail" aria-label="En complément">
+						<WidgetArea name="sidebar" />
+					</aside>
+				</section>
+
+				{secondary.length > 0 && (
+					<section>
+						<SectionHeading label="À la une" />
+						<CardGrid columns={3}>
+							{secondary.map((post) => (
+								<ArticleCard post={post} variant="standard" headingLevel={3} />
+							))}
+						</CardGrid>
+					</section>
+				)}
+
+				{remainder.length > 0 && (
+					<section>
+						<SectionHeading label="Plus d'articles" href="/posts" />
+						<CardGrid columns={4}>
+							{remainder.map((post) => (
+								<ArticleCard post={post} variant="compact" headingLevel={3} />
+							))}
+						</CardGrid>
+					</section>
+				)}
+			</div>
 		)
 	}
 </Base>
+
+<style>
+	.home {
+		max-width: var(--w-page);
+		margin-inline: auto;
+		padding: var(--sp-12) var(--gutter) 0;
+	}
+
+	.home__top {
+		display: grid;
+		grid-template-columns: 2fr 1fr;
+		column-gap: 0;
+		margin-inline: calc(var(--sp-8) / -2);
+	}
+
+	.home__lead,
+	.home__rail {
+		padding-inline: calc(var(--sp-8) / 2);
+	}
+
+	.home__rail {
+		border-inline-start: 1px solid var(--color-rule);
+	}
+
+	/* Les widgets sont rendus par EmDash : portée étrangère, donc :global(). */
+	.home__rail :global(h2),
+	.home__rail :global(h3) {
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		margin-block-end: var(--sp-3);
+		padding-block-end: var(--sp-2);
+		border-block-end: 2px solid var(--color-ink);
+	}
+
+	.home__rail :global(ul) {
+		list-style: none;
+		padding: 0;
+	}
+
+	.home__rail :global(li) {
+		padding-block: var(--sp-3);
+		border-block-end: 1px solid var(--color-rule);
+		font-size: var(--fs-caption);
+		line-height: 1.35;
+	}
+
+	.home__rail :global(a) {
+		color: var(--color-ink);
+		text-decoration: none;
+	}
+
+	.home__rail :global(a:hover) {
+		color: var(--color-accent);
+		text-decoration: underline;
+	}
+
+	.empty {
+		max-width: var(--w-text);
+		margin-inline: auto;
+		padding: var(--sp-24) var(--gutter);
+		text-align: center;
+	}
+
+	@media (max-width: 900px) {
+		.home__top {
+			grid-template-columns: 1fr;
+			margin-inline: 0;
+		}
+
+		.home__lead,
+		.home__rail {
+			padding-inline: 0;
+		}
+
+		.home__rail {
+			border-inline-start: 0;
+			border-block-start: 3px solid var(--color-ink);
+			margin-block-start: var(--sp-8);
+			padding-block-start: var(--sp-6);
+		}
+	}
+</style>

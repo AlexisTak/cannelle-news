@@ -34,17 +34,23 @@ const lookupInputSchema = z.object({
   current: paperMetadataSchema.optional(),
 });
 
-function isFreshEnough(paper: PaperMetadata, staleDays: number): boolean {
-  const fetched = new Date(paper.fetchedAt).getTime();
-  if (Number.isNaN(fetched)) return false;
-  const ageMs = Date.now() - fetched;
-  return ageMs >= 0 && ageMs <= staleDays * 24 * 60 * 60 * 1000;
-}
+const researchPaperBlocks: NonNullable<PluginDescriptor["portableTextBlocks"]> = [
+  {
+    type: "researchPaper",
+    label: "Research Paper",
+    icon: "link-external",
+    placeholder: "Paste arXiv URL or DOI...",
+    fields: [
+      { type: "text_input", action_id: "url", label: "arXiv URL or DOI" },
+      { type: "toggle", action_id: "manual", label: "Manual metadata" },
+    ],
+  },
+];
 
 export async function lookupHandler(
   input: LookupInput,
   ctx: PluginContext,
-  staleDays = 7
+  staleDays = 7,
 ): Promise<LookupResult> {
   if (!input.force && input.current && isFreshEnough(input.current, staleDays)) {
     return { ok: true, paper: input.current };
@@ -52,9 +58,17 @@ export async function lookupHandler(
 
   const id = identify(input.url);
   if (!id.source) return { ok: false, reason: "unrecognized" };
-  return id.source === "arxiv"
+  const cacheKey = `paper:${id.source}:${id.id}`;
+  if (!input.force && ctx.kv) {
+    const cached = await ctx.kv.get<LookupResult>(cacheKey);
+    if (cached?.ok && Date.now() - Date.parse(cached.paper.fetchedAt) < staleDays * 86_400_000) return cached;
+  }
+  const result = id.source === "arxiv"
     ? fetchArxiv(id.id, ctx)
     : fetchCrossref(id.id, ctx);
+  const resolved = await result;
+  if (resolved.ok && ctx.kv) await ctx.kv.set(cacheKey, resolved);
+  return resolved;
 }
 
 export function researchPaperEmbedPlugin(
@@ -67,6 +81,7 @@ export function researchPaperEmbedPlugin(
     entrypoint: "@cannelle/plugin-research-paper-embed",
     componentsEntry: "@cannelle/plugin-research-paper-embed/astro",
     adminEntry: "@cannelle/plugin-research-paper-embed/admin",
+    portableTextBlocks: researchPaperBlocks,
     options,
   };
 }
@@ -82,25 +97,7 @@ export function createPlugin(options: ResearchPaperEmbedOptions = {}) {
 
     admin: {
       entry: "@cannelle/plugin-research-paper-embed/admin",
-      portableTextBlocks: [
-        {
-          type: "researchPaper",
-          label: "Research Paper",
-          icon: "link-external",
-          placeholder: "Paste arXiv URL or DOI...",
-          fields: [
-            { type: "text_input", action_id: "url", label: "arXiv URL or DOI" },
-            { type: "toggle", action_id: "manual", label: "Manual metadata" },
-          ],
-        },
-      ],
-      fieldWidgets: [
-        {
-          name: "refresh",
-          label: "Refresh paper metadata",
-          fieldTypes: ["json", "string", "url"],
-        },
-      ],
+      portableTextBlocks: researchPaperBlocks,
     },
 
     routes: {

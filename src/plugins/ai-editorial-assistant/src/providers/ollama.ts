@@ -1,5 +1,7 @@
 import {
 	describeHttpFailure,
+	fetchWithTimeout,
+	readJsonLimited,
 	safeText,
 	ProviderError,
 	type CompletionRequest,
@@ -34,7 +36,7 @@ export function createOllamaProvider(fetchImpl: HttpFetch, baseUrl: string): Llm
 		id: "ollama",
 
 		async complete({ system, user, model, maxTokens }: CompletionRequest): Promise<string> {
-			const response = await fetchImpl(endpoint, {
+			const response = await fetchWithTimeout(fetchImpl, endpoint, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -57,10 +59,10 @@ export function createOllamaProvider(fetchImpl: HttpFetch, baseUrl: string): Llm
 				);
 			}
 
-			const payload = (await response.json()) as {
+			const payload = await readJsonLimited<{
 				message?: { content?: string; thinking?: string };
 				done_reason?: string;
-			};
+			}>(response);
 			const text = payload.message?.content ?? "";
 
 			if (!text.trim()) {

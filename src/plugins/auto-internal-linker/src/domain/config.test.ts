@@ -40,4 +40,14 @@ describe("buildTargetUrl", () => {
 	it("retourne null pour une collection sans motif déclaré", () => {
 		expect(buildTargetUrl("events", "salon-ia", DEFAULT_CONFIG.urlPatterns)).toBeNull();
 	});
+
+	it.each(["javascript:{slug}", "//evil.example/{slug}", "/posts/\\{slug}"])(
+		"refuse un motif dangereux : %s",
+		(pattern) => expect(buildTargetUrl("posts", "article", { posts: pattern })).toBeNull(),
+	);
+
+	it("n'accepte une URL absolue que sur l'origine configurée", () => {
+		expect(buildTargetUrl("posts", "article", { posts: "https://news.example/{slug}" }, "https://news.example")).toBe("https://news.example/article");
+		expect(buildTargetUrl("posts", "article", { posts: "https://evil.example/{slug}" }, "https://news.example")).toBeNull();
+	});
 });

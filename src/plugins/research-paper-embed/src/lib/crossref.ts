@@ -1,5 +1,6 @@
 import striptags from "striptags";
 import type { LookupResult, PaperMetadata, PluginContext } from "./types";
+import { readBodyLimited } from "./http";
 
 const TIMEOUT_MS = 5000;
 
@@ -63,7 +64,7 @@ export async function fetchCrossref(
 
   let message: Record<string, unknown>;
   try {
-    const body = await response.json();
+    const body = JSON.parse(await readBodyLimited(response));
     message = body?.message ?? {};
   } catch (err) {
     clearTimeout(timer);

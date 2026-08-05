@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import type { LookupResult, PaperMetadata, PluginContext } from "./types";
+import { readBodyLimited } from "./http";
 
 const PARSER = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "" });
 const TIMEOUT_MS = 5000;
@@ -45,7 +46,7 @@ export async function fetchArxiv(
 
   let xml: string;
   try {
-    xml = await response.text();
+    xml = await readBodyLimited(response);
   } catch (err) {
     clearTimeout(timer);
     ctx.log.error("arxiv network error", err);

@@ -1,0 +1,1 @@
+import{describe,expect,it}from"vitest";import{hmacHex,verifyHmac}from"./security";describe("paywall signatures",()=>{it("accepte uniquement la signature HMAC exacte",async()=>{const signature=await hmacHex('{"id":"evt"}',"secret");expect(await verifyHmac('{"id":"evt"}',signature,"secret")).toBe(true);expect(await verifyHmac('{"id":"evil"}',signature,"secret")).toBe(false)});});

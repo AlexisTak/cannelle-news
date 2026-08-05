@@ -33,6 +33,10 @@ export type LookupResult =
 
 export interface PluginContext {
   http: { fetch: (input: string | URL, init?: RequestInit) => Promise<Response> };
+  kv?: {
+    get<T>(key: string): Promise<T | null>;
+    set(key: string, value: unknown): Promise<void>;
+  };
   log: { error: (msg: string, extra?: unknown) => void };
   plugin: { id: string };
 }

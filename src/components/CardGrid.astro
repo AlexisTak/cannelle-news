@@ -1,0 +1,52 @@
+---
+interface Props {
+	columns?: 1 | 2 | 3 | 4;
+}
+
+const { columns = 3 } = Astro.props;
+---
+
+<div class="card-grid" style={`--cols: ${columns};`}>
+	<slot />
+</div>
+
+<style>
+	.card-grid {
+		display: grid;
+		grid-template-columns: repeat(var(--cols, 3), 1fr);
+		/* Pas de column-gap : le filet occupe la gouttière. Avec gap + border,
+		   le filet colle au bord de la carte suivante et le décalage se voit. */
+		column-gap: 0;
+		row-gap: var(--sp-8);
+		margin-inline: calc(var(--sp-6) / -2);
+	}
+
+	/* Le contenu vient du <slot /> : il porte la portée de la page appelante,
+	   pas celle de ce composant. `:global()` est indispensable. */
+	.card-grid > :global(*) {
+		padding-inline: calc(var(--sp-6) / 2);
+	}
+
+	.card-grid > :global(* + *) {
+		border-inline-start: 1px solid var(--color-rule);
+	}
+
+	@media (max-width: 900px) {
+		.card-grid {
+			grid-template-columns: 1fr;
+			margin-inline: 0;
+		}
+
+		.card-grid > :global(*) {
+			padding-inline: 0;
+		}
+
+		.card-grid > :global(* + *) {
+			/* Sans cette remise à zéro, chaque carte empilée conserve un filet
+			   vertical orphelin sur son flanc gauche. */
+			border-inline-start: 0;
+			border-block-start: 1px solid var(--color-rule);
+			padding-block-start: var(--sp-6);
+		}
+	}
+</style>

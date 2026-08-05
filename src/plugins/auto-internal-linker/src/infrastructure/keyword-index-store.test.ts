@@ -76,4 +76,19 @@ describe("createKeywordIndexStore", () => {
 		expect(await store.count()).toBe(250);
 		expect(await store.all()).toHaveLength(250);
 	});
+
+	it("met en cache les lectures puis invalide le cache à l'écriture", async () => {
+		const { ctx, keywords, kv } = createMockCtx();
+		const store = createKeywordIndexStore(ctx);
+		await store.replaceForTarget("a", [keyword("llm", "a")]);
+		expect(await store.all()).toHaveLength(1);
+		expect(kv.has("cache:keyword-index:v1")).toBe(true);
+
+		keywords.set("external:stale", keyword("stale", "external"));
+		expect(await store.all()).toHaveLength(1);
+
+		await store.replaceForTarget("b", [keyword("rag", "b")]);
+		expect(kv.has("cache:keyword-index:v1")).toBe(false);
+		expect((await store.all()).map((item) => item.normalized).sort()).toEqual(["llm", "rag", "stale"]);
+	});
 });

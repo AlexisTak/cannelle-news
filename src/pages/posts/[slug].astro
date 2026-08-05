@@ -1,6 +1,12 @@
 ---
-import { getEmDashEntry, getSeoMeta, decodeSlug, getSiteSettings } from "emdash";
-import { Image, PortableText, WidgetArea } from "emdash/ui";
+import {
+	getEmDashEntry,
+	getEmDashCollection,
+	getSeoMeta,
+	decodeSlug,
+	getSiteSettings,
+} from "emdash";
+import { PortableText } from "emdash/ui";
 import {
 	blockComponents as aiBlockComponents,
 	TldrBox,
@@ -12,6 +18,12 @@ import {
 	GlossaryScript,
 	GlossaryStyles,
 } from "../../plugins/glossary-cards/src/astro";
+import ArticleHeader from "../../components/ArticleHeader.astro";
+import Prose from "../../components/Prose.astro";
+import TagList from "../../components/TagList.astro";
+import SectionHeading from "../../components/SectionHeading.astro";
+import CardGrid from "../../components/CardGrid.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
 import Base from "../../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../../utils/site-identity";
 
@@ -39,7 +51,12 @@ const seo = getSeoMeta(post, {
 
 // Taxonomy terms are already hydrated onto the entry by getEmDashEntry.
 const tags = post.data.terms?.tag ?? [];
-const categories = post.data.terms?.category ?? [];
+
+// « À lire ensuite » : les plus récents hors article courant, limité à 3.
+const { entries: recent } = await getEmDashCollection("posts", {
+	orderBy: { published_at: "desc" },
+});
+const alsoRead = recent.filter((p) => p.id !== post.id).slice(0, 3);
 ---
 
 <Base
@@ -49,71 +66,56 @@ const categories = post.data.terms?.category ?? [];
 	canonical={seo.canonical}
 	image={seo.ogImage}
 	content={{ collection: "posts", id: post.data.id, slug }}
+	compactHeader
 >
 	<GlossaryStyles slot="head" />
 	<GlossaryScript slot="head" />
 	<article>
-		{
-			post.data.featured_image && (
-				<div {...post.edit.featured_image}>
-					<Image image={post.data.featured_image} />
-				</div>
-			)
-		}
+		<ArticleHeader post={post} />
 
-		<h1 {...post.edit.title}>{post.data.title}</h1>
+		<Prose>
+			<TldrBox bullets={(post.data as unknown as Record<string, unknown>).tldr} />
 
-		{
-			post.data.publishedAt && (
-				<time datetime={post.data.publishedAt.toISOString()}>
-					{post.data.publishedAt.toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "long",
-						day: "numeric",
-					})}
-				</time>
-			)
-		}
+			<PortableText
+				value={post.data.content}
+				components={{
+					types: { ...blockComponents, ...aiBlockComponents },
+					marks: glossaryMarkComponents,
+				}}
+			/>
+		</Prose>
 
-		{
-			categories.length > 0 && (
-				<div>
-					{categories.map((c) => (
-						<a href={`/category/${c.slug}`}>{c.label}</a>
-					))}
-				</div>
-			)
-		}
-
-		{/*
-			`emdash-env.d.ts` est régénéré depuis la base au démarrage du dev
-			server : `tldr` n'apparaît sur le type `Post` qu'une fois le champ
-			créé (seed d'une base neuve, ou ajout via le générateur de schéma).
-			L'accès est donc élargi ici pour que `astro check` passe sur une base
-			antérieure au plugin ; `TldrBox` valide la valeur à l'exécution.
-		*/}
-		<TldrBox bullets={(post.data as unknown as Record<string, unknown>).tldr} />
-
-		<PortableText
-			value={post.data.content}
-			components={{ types: { ...blockComponents, ...aiBlockComponents }, marks: glossaryMarkComponents }}
-		/>
+		<div class="article-footer">
+			<TagList tags={tags} />
+		</div>
 
 		<GlossaryJsonLd blocks={post.data.content ?? []} />
 		<ResearchPaperJsonLd blocks={post.data.content ?? []} />
-
-		{
-			tags.length > 0 && (
-				<div>
-					{tags.map((t) => (
-						<a href={`/tag/${t.slug}`}>{t.label}</a>
-					))}
-				</div>
-			)
-		}
 	</article>
 
-	<aside>
-		<WidgetArea name="sidebar" />
-	</aside>
+	{
+		alsoRead.length > 0 && (
+			<section class="also-read">
+				<SectionHeading label="À lire ensuite" />
+				<CardGrid columns={3}>
+					{alsoRead.map((p) => (
+						<ArticleCard post={p} variant="standard" headingLevel={3} />
+					))}
+				</CardGrid>
+			</section>
+		)
+	}
+
+	<style>
+		.article-footer,
+		.also-read {
+			max-width: var(--w-text);
+			margin-inline: auto;
+			padding-inline: var(--gutter);
+		}
+
+		.also-read {
+			max-width: var(--w-page);
+		}
+	</style>
 </Base>

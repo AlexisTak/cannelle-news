@@ -35,7 +35,12 @@ export interface DeriveInput {
  * l'index et le trie n'en garderait qu'un au hasard de l'ordre d'insertion.
  */
 export function deriveKeywords(input: DeriveInput): IndexedKeyword[] {
-	const targetUrl = buildTargetUrl(input.collection, input.slug, input.config.urlPatterns);
+	const targetUrl = buildTargetUrl(
+		input.collection,
+		input.slug,
+		input.config.urlPatterns,
+		input.config.siteUrl,
+	);
 	// Un article sans URL publique ne peut être la cible d'aucun lien.
 	if (!targetUrl) return [];
 

@@ -1,0 +1,7 @@
+export type MediaJobType = "ocr" | "alt" | "compress";
+export interface MediaAsset { id: string; mediaId: string; filename: string; mimeType: string; size: number | null; sourceUrl: string; title: string; alt: string; caption: string; tags: string[]; ocrText: string; status: "ready" | "processing" | "failed"; createdAt: string; updatedAt: string }
+export interface MediaVersion { id: string; mediaId: string; version: number; snapshot: MediaAsset; createdAt: string }
+export interface MediaJob { id: string; mediaId: string; type: MediaJobType; status: "pending" | "done" | "failed"; createdAt: string; error?: string }
+export function altFromFilename(filename: string): string { return filename.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim().replace(/^./, c => c.toUpperCase()); }
+export function searchAssets(assets: MediaAsset[], query: string): MediaAsset[] { const terms = query.toLocaleLowerCase("fr").split(/\s+/).filter(Boolean); if (!terms.length) return assets; return assets.map(asset => { const haystack = [asset.filename, asset.title, asset.alt, asset.caption, asset.ocrText, ...asset.tags].join(" ").toLocaleLowerCase("fr"); return { asset, score: terms.reduce((n, term) => n + (haystack.includes(term) ? 1 : 0), 0) }; }).filter(x => x.score > 0).sort((a,b) => b.score-a.score).map(x => x.asset); }
+export function cdnUrl(sourceUrl: string, base: string): string { if (!base.trim()) return sourceUrl; const url = new URL(sourceUrl, "https://local.invalid"); return `${base.replace(/\/$/, "")}/${url.pathname.replace(/^\//, "")}`; }

@@ -2,7 +2,7 @@ import type { Grade, SeoReport } from "../domain/report";
 
 export interface ReportQuery {
 	collection?: string;
-	grade?: Grade;
+	grade?: "good" | "ok" | "poor";
 	limit: number;
 	cursor?: string;
 	sort?: "score" | "analyzedAt";

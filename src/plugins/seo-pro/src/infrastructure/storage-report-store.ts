@@ -40,7 +40,7 @@ export function createStorageReportStore(ctx: PluginContext): ReportStore {
 			if (collection) where.collection = collection;
 			if (grade) where.score = scoreRangeForGrade(grade) as NonNullable<QueryOpts["where"]>[string];
 			const result = await reports.query({
-				where: Object.keys(where).length > 0 ? where : undefined,
+				where: collection || grade ? { ...(collection ? { collection } : {}), ...(grade ? { grade } : {}) } : undefined,
 				orderBy,
 				limit,
 				cursor,

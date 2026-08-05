@@ -1,0 +1,38 @@
+---
+interface Props {
+	label: string;
+	href?: string;
+}
+
+const { label, href } = Astro.props;
+---
+
+{
+	href ? (
+		<a class="kicker" href={href}>
+			{label}
+		</a>
+	) : (
+		<span class="kicker">{label}</span>
+	)
+}
+
+<style>
+	.kicker {
+		display: block;
+		margin-block-end: var(--sp-2);
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		font-weight: 700;
+		line-height: var(--lh-meta);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-accent);
+		text-decoration: none;
+	}
+
+	a.kicker:hover {
+		color: var(--color-accent-hover);
+		text-decoration: underline;
+	}
+</style>

@@ -1,0 +1,3 @@
+const encoder=new TextEncoder();
+export async function hmacHex(payload:string,secret:string):Promise<string>{const key=await crypto.subtle.importKey("raw",encoder.encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);const bytes=new Uint8Array(await crypto.subtle.sign("HMAC",key,encoder.encode(payload)));return [...bytes].map(x=>x.toString(16).padStart(2,"0")).join("")}
+export async function verifyHmac(payload:string,signature:string,secret:string):Promise<boolean>{if(!/^[a-f0-9]{64}$/i.test(signature))return false;const expected=await hmacHex(payload,secret),a=encoder.encode(expected.toLowerCase()),b=encoder.encode(signature.toLowerCase());let diff=a.length^b.length;for(let i=0;i<Math.max(a.length,b.length);i++)diff|=(a[i]??0)^(b[i]??0);return diff===0}

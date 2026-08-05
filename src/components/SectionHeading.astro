@@ -1,0 +1,42 @@
+---
+interface Props {
+	label: string;
+	href?: string;
+	level?: 2 | 3;
+}
+
+const { label, href, level = 2 } = Astro.props;
+const Tag = `h${level}` as "h2" | "h3";
+---
+
+<div class="section-heading">
+	<Tag>
+		{href ? <a href={href}>{label}</a> : label}
+	</Tag>
+</div>
+
+<style>
+	.section-heading {
+		margin-block: var(--sp-12) var(--sp-6);
+		border-block-start: 3px solid var(--color-ink);
+	}
+
+	.section-heading :global(h2),
+	.section-heading :global(h3) {
+		margin-block-start: var(--sp-2);
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.section-heading :global(a) {
+		color: var(--color-ink);
+		text-decoration: none;
+	}
+
+	.section-heading :global(a:hover) {
+		color: var(--color-accent);
+	}
+</style>

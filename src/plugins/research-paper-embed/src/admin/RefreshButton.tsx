@@ -1,19 +1,11 @@
 import { useState } from "react";
+import type { PaperMetadata } from "../lib/types";
+import { lookupPaper } from "./api";
 
 interface Props {
   blockKey: string;
   currentUrl: string;
-  onRefresh: (paper: {
-    title: string;
-    authors: string[];
-    publishedDate: string | null;
-    abstract: string;
-    pdfUrl: string | null;
-    doi: string | null;
-    fetchedAt: string;
-    source: "arxiv" | "crossref";
-    sourceId: string;
-  }) => void;
+  onRefresh: (paper: PaperMetadata) => void;
 }
 
 type State =
@@ -27,15 +19,7 @@ export function RefreshButton({ blockKey: _blockKey, currentUrl, onRefresh }: Pr
   async function handleClick() {
     setState({ kind: "loading" });
     try {
-      const res = await fetch(
-        `/_emdash/api/plugins/research-paper-embed/lookup`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: currentUrl, force: true }),
-        }
-      );
-      const body = await res.json();
+      const body = await lookupPaper(currentUrl, true);
       if (body.ok) {
         onRefresh(body.paper);
         setState({ kind: "idle" });
@@ -43,7 +27,10 @@ export function RefreshButton({ blockKey: _blockKey, currentUrl, onRefresh }: Pr
         setState({ kind: "error", message: reasonLabel(body.reason) });
       }
     } catch (err) {
-      setState({ kind: "error", message: "Network error" });
+      setState({
+        kind: "error",
+        message: err instanceof Error ? err.message : "Network error",
+      });
     }
   }
 

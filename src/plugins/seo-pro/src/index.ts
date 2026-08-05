@@ -53,7 +53,7 @@ export function createPlugin() {
 
 		storage: {
 			reports: {
-				indexes: ["collection", "score", "analyzedAt", ["collection", "score"]],
+				indexes: ["collection", "score", "grade", "analyzedAt", ["collection", "score"], ["collection", "grade"]],
 			},
 		},
 
@@ -124,28 +124,17 @@ export function createPlugin() {
 					ctx.log.info(`[seo-pro] ${event.collection}/${entryId} scored ${report.score}`);
 				},
 			},
-
 			"content:afterUnpublish": {
-				priority: 100,
-				errorPolicy: "continue",
-				timeout: 5000,
+				priority: 100, errorPolicy: "continue", timeout: 5000,
 				handler: async (event, ctx) => {
-					const entryId = String(event.content.id ?? "");
-					if (!entryId) return;
-					await createStorageReportStore(ctx).delete(entryId);
-					ctx.log.info(`[seo-pro] ${event.collection}/${entryId} report purged after unpublish`);
+					const id = String(event.content.id ?? "");
+					if (id) { await createStorageReportStore(ctx).delete(id); await ctx.kv.delete(focusKey(id)); }
 				},
 			},
-
 			"content:afterDelete": {
-				priority: 100,
-				errorPolicy: "continue",
-				timeout: 5000,
+				priority: 100, errorPolicy: "continue", timeout: 5000,
 				handler: async (event, ctx) => {
-					const entryId = String(event.id ?? "");
-					if (!entryId) return;
-					await createStorageReportStore(ctx).delete(entryId);
-					ctx.log.info(`[seo-pro] report ${entryId} purged after delete`);
+					if (event.id) { await createStorageReportStore(ctx).delete(event.id); await ctx.kv.delete(focusKey(event.id)); }
 				},
 			},
 		},

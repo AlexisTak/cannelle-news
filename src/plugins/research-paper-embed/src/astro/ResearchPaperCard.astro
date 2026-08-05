@@ -1,5 +1,6 @@
 ---
 import type { ResearchPaperBlock } from "../lib/types";
+import { safePaperHref } from "../lib/safe-href";
 
 interface Props {
   value: ResearchPaperBlock;
@@ -26,54 +27,188 @@ const abstractPreview = hasMetadata && value.abstract.length > 200
   : value.abstract;
 
 const badge = value.source === "arxiv" ? "arXiv" : value.source === "crossref" ? "DOI" : "Manual";
+const paperUrl = safePaperHref(value.url);
+const pdfUrl = safePaperHref(value.pdfUrl);
 ---
 
-<article class="not-prose my-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-  <header class="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-    <span class="rounded bg-slate-100 px-2 py-0.5 dark:bg-slate-800">{badge}</span>
-    {dateLabel && <time datetime={value.publishedDate}>{dateLabel}</time>}
-  </header>
+<article class="paper-card">
+	<header class="paper-card__head">
+		<span class="paper-card__badge">{badge}</span>
+		{dateLabel && <time datetime={value.publishedDate}>{dateLabel}</time>}
+	</header>
 
-  {hasMetadata ? (
-    <h3 class="mb-2 text-lg font-semibold leading-snug">
-      <a href={value.url} class="hover:underline" rel="noopener">{value.title}</a>
-    </h3>
-  ) : (
-    <p class="text-sm text-slate-500">Métadonnées non récupérées. <a href={value.url} rel="noopener" class="underline">Lien direct</a>.</p>
-  )}
+	{
+		hasMetadata ? (
+			<h3 class="paper-card__title">
+				{paperUrl ? <a href={paperUrl} rel="noopener">{value.title}</a> : value.title}
+			</h3>
+		) : (
+			<p class="paper-card__fallback">
+				Métadonnées non récupérées. {paperUrl && <a href={paperUrl} rel="noopener">Lien direct</a>}
+			</p>
+		)
+	}
 
-  {authorsLabel && (
-    <p class="mb-3 text-sm italic text-slate-600 dark:text-slate-400">{authorsLabel}</p>
-  )}
+	{authorsLabel && <p class="paper-card__authors">{authorsLabel}</p>}
 
-  {hasMetadata && abstractPreview && (
-    <div class="mb-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-      <p>{abstractPreview}</p>
-      {value.abstract.length > 200 && (
-        <details class="mt-2">
-          <summary class="cursor-pointer text-xs font-medium text-slate-500 hover:underline">Lire la suite</summary>
-          <p class="mt-2">{value.abstract}</p>
-        </details>
-      )}
-    </div>
-  )}
+	{
+		hasMetadata && abstractPreview && (
+			<div class="paper-card__abstract">
+				<p>{abstractPreview}</p>
+				{value.abstract.length > 200 && (
+					<details>
+						<summary>Lire la suite</summary>
+						<p>{value.abstract}</p>
+					</details>
+				)}
+			</div>
+		)
+	}
 
-  <footer class="flex flex-wrap gap-2">
-    <a
-      href={value.url}
-      rel="noopener"
-      class="inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-    >
-      Consulter l'étude
-    </a>
-    {value.pdfUrl && (
-      <a
-        href={value.pdfUrl}
-        rel="noopener"
-        class="inline-flex items-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
-      >
-        PDF
-      </a>
-    )}
-  </footer>
+	<footer class="paper-card__actions">
+		{paperUrl && <a class="paper-card__button" href={paperUrl} rel="noopener">Consulter l'étude</a>}
+		{
+			pdfUrl && (
+				<a
+					class="paper-card__button paper-card__button--ghost"
+					href={pdfUrl}
+					rel="noopener"
+				>
+					PDF
+				</a>
+			)
+		}
+	</footer>
 </article>
+
+<style>
+	.paper-card {
+		margin-block: var(--sp-8, 2rem);
+		padding: var(--sp-6, 1.5rem);
+		border: 1px solid var(--color-rule, #dfdfdf);
+		border-block-start: 3px solid var(--color-ink, #121212);
+		border-radius: var(--radius, 0);
+		background: var(--color-surface, #fff);
+	}
+
+	.paper-card__head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-3, 0.75rem);
+		margin-block-end: var(--sp-3, 0.75rem);
+	}
+
+	.paper-card__head time {
+		font-family: var(--font-meta, inherit);
+		font-size: var(--fs-meta, 0.75rem);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink-muted, #666);
+	}
+
+	.paper-card__badge {
+		display: inline-block;
+		padding: var(--sp-1, 0.25rem) var(--sp-2, 0.5rem);
+		background: var(--color-surface-alt, #f7f7f7);
+		font-family: var(--font-meta, inherit);
+		font-size: var(--fs-meta, 0.75rem);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink-muted, #666);
+	}
+
+	.paper-card__title {
+		margin: 0 0 var(--sp-2, 0.5rem);
+		font-family: var(--font-display, Georgia, serif);
+		font-size: var(--fs-h3, 1.3125rem);
+		line-height: 1.2;
+	}
+
+	.paper-card__title a {
+		color: var(--color-ink, #121212);
+		text-decoration: none;
+	}
+
+	.paper-card__title a:hover {
+		color: var(--color-accent, #326891);
+		text-decoration: underline;
+	}
+
+	.paper-card__fallback,
+	.paper-card__authors {
+		margin: 0 0 var(--sp-3, 0.75rem);
+		font-size: var(--fs-caption, 0.8125rem);
+		color: var(--color-ink-muted, #666);
+	}
+
+	.paper-card__authors {
+		font-style: italic;
+	}
+
+	.paper-card__abstract {
+		margin-block-end: var(--sp-4, 1rem);
+		font-size: var(--fs-caption, 0.8125rem);
+		line-height: 1.55;
+		color: var(--color-ink-soft, #363636);
+	}
+
+	.paper-card__abstract summary {
+		cursor: pointer;
+		font-family: var(--font-meta, inherit);
+		font-size: var(--fs-meta, 0.75rem);
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink-muted, #666);
+	}
+
+	.paper-card__abstract summary:hover {
+		color: var(--color-ink, #121212);
+	}
+
+	.paper-card__abstract details {
+		margin-block-start: var(--sp-2, 0.5rem);
+	}
+
+	.paper-card__abstract details p {
+		margin-block-start: var(--sp-3, 0.75rem);
+	}
+
+	.paper-card__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-2, 0.5rem);
+	}
+
+	.paper-card__button {
+		display: inline-block;
+		padding: var(--sp-3, 0.75rem) var(--sp-6, 1.5rem);
+		background: var(--color-ink, #121212);
+		border-radius: var(--radius, 0);
+		font-family: var(--font-meta, inherit);
+		font-size: var(--fs-meta, 0.75rem);
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-surface, #fff);
+		text-decoration: none;
+	}
+
+	.paper-card__button:hover {
+		background: var(--color-accent, #326891);
+	}
+
+	.paper-card__button--ghost {
+		background: transparent;
+		border: 1px solid var(--color-border-interactive, #8f8f8f);
+		color: var(--color-ink, #121212);
+	}
+
+	.paper-card__button--ghost:hover {
+		background: var(--color-ink, #121212);
+		border-color: var(--color-ink, #121212);
+		color: var(--color-surface, #fff);
+	}
+</style>

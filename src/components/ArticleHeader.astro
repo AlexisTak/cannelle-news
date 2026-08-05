@@ -1,0 +1,95 @@
+---
+import type { Post } from "../../emdash-env";
+import { Image } from "emdash/ui";
+import Kicker from "./Kicker.astro";
+import MetaLine from "./MetaLine.astro";
+import Byline from "./Byline.astro";
+import { resolveKicker } from "../utils/format";
+
+interface Props {
+	post: { id: string; data: Post; edit: Record<string, Record<string, unknown>> };
+}
+
+const { post } = Astro.props;
+
+const raw = post.data as unknown as Record<string, unknown>;
+const kicker = resolveKicker({
+	kicker: raw.kicker,
+	categories: post.data.terms?.category ?? [],
+});
+const dek = typeof raw.dek === "string" && raw.dek.trim().length > 0 ? raw.dek : null;
+---
+
+<header class="article-header">
+	<div class="article-header__text">
+		{kicker && <Kicker label={kicker.label} href={kicker.href} />}
+
+		<h1 {...post.edit.title}>{post.data.title}</h1>
+
+		{dek && <p class="article-header__dek">{dek}</p>}
+
+		<MetaLine date={post.data.publishedAt}>
+			<Byline credits={post.data.bylines} />
+		</MetaLine>
+	</div>
+
+	{
+		post.data.featured_image && (
+			<figure class="article-header__media" {...post.edit.featured_image}>
+				<Image image={post.data.featured_image} />
+				{post.data.featured_image.alt && (
+					<figcaption>{post.data.featured_image.alt}</figcaption>
+				)}
+			</figure>
+		)
+	}
+</header>
+
+<style>
+	.article-header {
+		max-width: var(--w-wide);
+		margin-inline: auto;
+		padding-inline: var(--gutter);
+		padding-block-start: var(--sp-12);
+	}
+
+	.article-header__text {
+		max-width: var(--w-text);
+		margin-inline: auto;
+	}
+
+	.article-header h1 {
+		font-size: var(--fs-h1);
+		letter-spacing: -0.02em;
+	}
+
+	.article-header__dek {
+		margin-block-start: var(--sp-4);
+		font-size: var(--fs-dek);
+		line-height: 1.45;
+		color: var(--color-ink-soft);
+	}
+
+	.article-header :global(.meta-line) {
+		margin-block-start: var(--sp-6);
+		padding-block: var(--sp-3);
+		border-block: 1px solid var(--color-rule);
+	}
+
+	.article-header__media {
+		margin-block-start: var(--sp-8);
+	}
+
+	.article-header__media :global(img) {
+		width: 100%;
+		border-radius: var(--radius);
+	}
+
+	.article-header__media figcaption {
+		margin-block-start: var(--sp-2);
+		font-family: var(--font-meta);
+		font-size: var(--fs-caption);
+		line-height: 1.4;
+		color: var(--color-ink-muted);
+	}
+</style>

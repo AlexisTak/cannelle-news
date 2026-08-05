@@ -39,8 +39,8 @@ export function createGlossaryStore(ctx: PluginContext) {
 		},
 
 		async get(id: string): Promise<GlossaryTerm | null> {
-			const item = await collection.get(id);
-			return item ? (item as GlossaryTerm) : null;
+			const term = await collection.get(id);
+			return (term as GlossaryTerm | null) ?? null;
 		},
 
 		async findByTerm(term: string): Promise<GlossaryTerm | null> {

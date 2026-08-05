@@ -134,15 +134,7 @@ export async function copyToClipboard(text: string): Promise<void> {
 		return;
 	}
 
-	const area = document.createElement("textarea");
-	area.value = text;
-	area.setAttribute("readonly", "");
-	area.style.position = "fixed";
-	area.style.opacity = "0";
-	document.body.appendChild(area);
-	area.select();
-	document.execCommand("copy");
-	document.body.removeChild(area);
+	throw new Error("La copie nécessite un contexte HTTPS et l’autorisation du presse-papiers.");
 }
 
 /** « Analysé sur la version enregistrée du 3 août à 09:12 ». */

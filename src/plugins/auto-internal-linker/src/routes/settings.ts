@@ -50,7 +50,16 @@ export async function settingsRouteHandler(
 	ctx: PluginContext,
 ): Promise<SettingsOutput> {
 	const store = createKvConfigStore(ctx);
-	if (input.patch) await store.set(input.patch as Partial<LinkerConfig>);
+	if (input.patch) {
+		const before = await store.get();
+		await store.set(input.patch as Partial<LinkerConfig>);
+		const after = await store.get();
+		const removed = before.analyzableCollections.filter((collection) => !after.analyzableCollections.includes(collection));
+		if (removed.length) {
+			const pending = await ctx.kv.get<string[]>("jobs:staleCollections") ?? [];
+			await ctx.kv.set("jobs:staleCollections", [...new Set([...pending, ...removed])]);
+		}
+	}
 
 	const config = await store.get();
 	let publishedCount = 0;

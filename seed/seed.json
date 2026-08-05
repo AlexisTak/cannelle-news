@@ -25,6 +25,18 @@
 					"searchable": true
 				},
 				{
+					"slug": "kicker",
+					"label": "Surtitre",
+					"type": "string",
+					"description": "Surtitre de rubrique affiché au-dessus du titre (ex. ENQUÊTE). À défaut, la première catégorie est utilisée."
+				},
+				{
+					"slug": "dek",
+					"label": "Chapeau",
+					"type": "text",
+					"description": "Chapeau éditorial affiché sous le titre. Distinct de l'extrait, qui reste réservé au SEO et aux cartes."
+				},
+				{
 					"slug": "featured_image",
 					"label": "Featured Image",
 					"type": "image"

@@ -38,8 +38,15 @@ export function fetchSuggestions(input: SuggestInput): Promise<SuggestOutput> {
 	return call<SuggestOutput>("suggest", input);
 }
 
-export function rebuildIndex(): Promise<RebuildOutput> {
-	return call<RebuildOutput>("rebuild", {});
+export async function rebuildIndex(): Promise<Extract<RebuildOutput, { status: "complete" }>> {
+	const jobId = crypto.randomUUID();
+	for (;;) {
+		const result = await call<RebuildOutput>("rebuild", { jobId });
+		if (result.status === "busy") {
+			throw new Error("Une reconstruction est déjà en cours. Réessayez dans quelques secondes.");
+		}
+		if (result.status === "complete") return result;
+	}
 }
 
 export function fetchLinkerHealth(): Promise<SettingsOutput> {

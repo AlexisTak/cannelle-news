@@ -1,14 +1,16 @@
 ---
 import { getMenu, getSiteSettings } from "emdash";
 import {
-	WidgetArea,
 	EmDashHead,
 	EmDashBodyStart,
 	EmDashBodyEnd,
 } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
-import LiveSearch from "emdash/ui/search";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { Font } from "astro:assets";
+import "../styles/theme.css";
 
 interface Props {
 	title: string;
@@ -18,9 +20,11 @@ interface Props {
 	canonical?: string | null;
 	/** Pass content reference for plugin page contributions on content pages */
 	content?: { collection: string; id: string; slug?: string | null };
+	/** Bandeau-titre réduit. Vrai partout sauf en accueil. */
+	compactHeader?: boolean;
 }
 
-const { title, pageTitle, description, image, canonical, content } = Astro.props;
+const { title, pageTitle, description, image, canonical, content, compactHeader } = Astro.props;
 const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(await getSiteSettings());
 const fullTitle = title.includes(siteTitle) ? title : `${title} — ${siteTitle}`;
 const pageDescription = description ?? siteTagline;
@@ -42,45 +46,57 @@ const pageCtx = createPublicPageContext({
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{fullTitle}</title>
 		{pageDescription && <meta name="description" content={pageDescription} />}
 		{canonical && <link rel="canonical" href={canonical} />}
+		<Font cssVariable="--font-body" preload />
+		<Font cssVariable="--font-display" />
+		<Font cssVariable="--font-meta" />
 		<EmDashHead page={pageCtx} />
 	</head>
 	<body>
 		<EmDashBodyStart page={pageCtx} />
 
-		<header>
-			<nav>
-				<a href="/">
-					{siteLogo
-						? <img src={siteLogo.url} alt={siteLogo.alt || siteTitle} style="height:48px;width:auto;margin:-8px 0;display:block;" />
-						: siteTitle
-					}
-				</a>
-				{
-					menu?.items.map((item) => (
-						<a href={item.url} target={item.target}>
-							{item.label}
-						</a>
-					))
-				}
-				<LiveSearch placeholder="Search..." collections={["posts", "pages"]} />
-			</nav>
-		</header>
+		<a class="visually-hidden-focusable skip-link" href="#contenu">
+			Aller au contenu
+		</a>
 
-		<main>
+		<SiteHeader
+			siteTitle={siteTitle}
+			siteLogo={siteLogo
+				? { url: siteLogo.url as string, alt: siteLogo.alt }
+				: null}
+			menu={menu}
+			compact={compactHeader}
+		/>
+
+		<main id="contenu" tabindex="-1">
 			<slot />
 		</main>
 
-		<footer>
-			<WidgetArea name="sidebar" />
-		</footer>
+		<SiteFooter siteTitle={siteTitle} />
 
 		<EmDashBodyEnd page={pageCtx} />
 	</body>
 </html>
+
+<style>
+	.skip-link:focus {
+		position: fixed;
+		z-index: 100;
+		inset-block-start: var(--sp-2);
+		inset-inline-start: var(--sp-2);
+		padding: var(--sp-3) var(--sp-4);
+		background: var(--color-ink);
+		color: var(--color-surface);
+		font-family: var(--font-meta);
+		font-size: var(--fs-meta);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		text-decoration: none;
+	}
+</style>

@@ -1,5 +1,7 @@
 import {
 	describeHttpFailure,
+	fetchWithTimeout,
+	readJsonLimited,
 	safeText,
 	ProviderError,
 	type CompletionRequest,
@@ -30,7 +32,7 @@ export function createAnthropicProvider(fetchImpl: HttpFetch, apiKey: string): L
 		id: "anthropic",
 
 		async complete({ system, user, model, maxTokens }: CompletionRequest): Promise<string> {
-			const response = await fetchImpl(ENDPOINT, {
+			const response = await fetchWithTimeout(fetchImpl, ENDPOINT, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -53,9 +55,9 @@ export function createAnthropicProvider(fetchImpl: HttpFetch, apiKey: string): L
 				);
 			}
 
-			const payload = (await response.json()) as {
+			const payload = await readJsonLimited<{
 				content?: Array<{ type?: string; text?: string }>;
-			};
+			}>(response);
 			// Le tableau `content` peut contenir des blocs non textuels ; on
 			// concatène uniquement les blocs `text`.
 			const text = (payload.content ?? [])

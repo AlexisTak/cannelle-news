@@ -1,0 +1,595 @@
+/*
+ * Styles de la page Glossaire.
+ *
+ * Aucune librairie de composants (contrainte AGENTS.md). Les couleurs sont
+ * empruntées aux variables du thème admin Kumo, avec repli explicite : les
+ * tokens sont définis en `light-dark()`, le mode sombre suit donc sans média
+ * query ni classe supplémentaire.
+ *
+ * Parti pris de mise en page : l'objet de la page est un lexique, pas un
+ * formulaire. La liste occupe la colonne principale et l'édition passe en
+ * panneau latéral — l'inverse de la disposition « formulaire puis liste »,
+ * qui met en avant l'ajout au détriment de la relecture du vocabulaire.
+ */
+
+.root {
+	--glossary-gutter: 1.5rem;
+
+	display: flex;
+	flex-direction: column;
+	gap: var(--glossary-gutter);
+	max-width: 76rem;
+	margin: 0 auto;
+	padding: var(--glossary-gutter);
+	color: var(--color-kumo-contrast, #111827);
+	font-size: 0.875rem;
+}
+
+/* ---------------------------------------------------------------- en-tête */
+
+.header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding-bottom: 0.875rem;
+	border-bottom: 1px solid var(--color-kumo-line, #e5e7eb);
+}
+
+.title {
+	margin: 0;
+	font-size: 1.375rem;
+	font-weight: 650;
+	letter-spacing: -0.015em;
+}
+
+/*
+ * Deux chiffres seulement. Le total situe la taille du lexique ; les termes
+ * sans lien sont la seule lacune sur laquelle un rédacteur peut agir — un
+ * terme sans `fullUrl` perd le « En savoir plus » de son infobulle.
+ */
+.tally {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0;
+	font-size: 0.75rem;
+	color: var(--color-kumo-subtle, #6b7280);
+	font-variant-numeric: tabular-nums;
+}
+
+.tallySeparator {
+	opacity: 0.45;
+}
+
+.tallyGap {
+	color: var(--color-kumo-warning, #b45309);
+}
+
+/* ------------------------------------------------------------- disposition */
+
+.body {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) minmax(17rem, 21rem);
+	gap: var(--glossary-gutter);
+	align-items: start;
+}
+
+/* --------------------------------------------------------------- rail A–Z */
+
+/*
+ * Le rail est la signature de la page : il donne d'un coup d'œil où le
+ * vocabulaire est dense et où il est absent. Une lettre sans terme reste
+ * affichée mais inerte — c'est l'information utile, pas du remplissage.
+ */
+.rail {
+	position: sticky;
+	top: 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.0625rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.railLetter {
+	display: block;
+	width: 1.5rem;
+	padding: 0.0625rem 0;
+	border: 0;
+	border-radius: 0.1875rem;
+	background: transparent;
+	font: inherit;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	line-height: 1.5;
+	text-align: center;
+	letter-spacing: 0.02em;
+	color: var(--color-kumo-contrast, #111827);
+	cursor: pointer;
+}
+
+.railLetter:hover {
+	background: var(--color-kumo-fill-hover, #f3f4f6);
+}
+
+.railLetter:focus-visible {
+	outline: 2px solid var(--color-kumo-focus, #111827);
+	outline-offset: 1px;
+}
+
+.railLetter[data-empty="true"] {
+	color: var(--color-kumo-subtle, #9ca3af);
+	opacity: 0.35;
+	cursor: default;
+}
+
+.railLetter[data-empty="true"]:hover {
+	background: transparent;
+}
+
+/* ------------------------------------------------------------- le lexique */
+
+.lexicon {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+	min-width: 0;
+}
+
+.search {
+	width: 100%;
+	padding: 0.5rem 0.6875rem;
+	border: 1px solid var(--color-kumo-line, #e5e7eb);
+	border-radius: 0.375rem;
+	background: var(--color-kumo-elevated, #ffffff);
+	color: inherit;
+	font: inherit;
+	font-size: 0.875rem;
+}
+
+.search:focus-visible {
+	outline: 2px solid var(--color-kumo-focus, #111827);
+	outline-offset: -1px;
+	border-color: transparent;
+}
+
+.group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.125rem;
+	scroll-margin-top: 1rem;
+}
+
+/*
+ * Marqueur de section d'un lexique : la lettre, puis un filet qui court
+ * jusqu'au bord. Numéroter (01 / 02) serait faux ici — un glossaire n'est pas
+ * une séquence, il est alphabétique.
+ */
+.groupLabel {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	margin: 0 0 0.375rem;
+	font-size: 0.6875rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--color-kumo-subtle, #6b7280);
+}
+
+.groupLabel::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: var(--color-kumo-hairline, #e5e7eb);
+}
+
+/* --------------------------------------------------------------- l'entrée */
+
+.entry {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 0.25rem 0.75rem;
+	padding: 0.6875rem 0.75rem;
+	border: 1px solid transparent;
+	border-radius: 0.375rem;
+}
+
+.entry:hover {
+	background: var(--color-kumo-fill, #f9fafb);
+}
+
+.entry[data-editing="true"] {
+	border-color: var(--color-kumo-accent, #2563eb);
+	background: var(--color-kumo-accent-muted, #eff6ff);
+}
+
+/* Ligne de vedette : le terme, ses variantes, puis le lien. */
+.headword {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.5rem;
+	min-width: 0;
+}
+
+.term {
+	font-size: 0.9375rem;
+	font-weight: 650;
+	letter-spacing: -0.01em;
+}
+
+/*
+ * Les alias sont donnés comme les variantes d'une entrée de dictionnaire :
+ * en italique, effacés, séparés par des points médians.
+ */
+.variants {
+	font-size: 0.75rem;
+	font-style: italic;
+	color: var(--color-kumo-subtle, #6b7280);
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.link {
+	font-size: 0.75rem;
+	color: var(--color-kumo-accent, #2563eb);
+	text-decoration: none;
+	overflow-wrap: anywhere;
+}
+
+.link:hover {
+	text-decoration: underline;
+}
+
+/* Absence de lien : signalée là où la décision se prend, pas seulement en tête. */
+.linkMissing {
+	font-size: 0.75rem;
+	color: var(--color-kumo-subtle, #9ca3af);
+}
+
+.definition {
+	grid-column: 1;
+	margin: 0;
+	max-width: 62ch;
+	font-size: 0.8125rem;
+	line-height: 1.55;
+	color: var(--color-kumo-contrast, #374151);
+}
+
+.entryActions {
+	grid-row: 1 / span 2;
+	grid-column: 2;
+	display: flex;
+	align-items: flex-start;
+	gap: 0.25rem;
+}
+
+/* -------------------------------------------------------------- panneau — */
+
+.editor {
+	position: sticky;
+	top: 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	padding: 1rem;
+	border: 1px solid var(--color-kumo-line, #e5e7eb);
+	border-radius: 0.5rem;
+	background: var(--color-kumo-elevated, #ffffff);
+}
+
+.editorTitle {
+	margin: 0;
+	font-size: 0.8125rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--color-kumo-subtle, #6b7280);
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3125rem;
+}
+
+.fieldLabel {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.5rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+.fieldHint {
+	font-weight: 400;
+	color: var(--color-kumo-subtle, #6b7280);
+}
+
+.input,
+.textarea {
+	width: 100%;
+	padding: 0.4375rem 0.5625rem;
+	border: 1px solid var(--color-kumo-line, #e5e7eb);
+	border-radius: 0.3125rem;
+	background: var(--color-kumo-canvas, #ffffff);
+	color: inherit;
+	font: inherit;
+	font-size: 0.8125rem;
+}
+
+.textarea {
+	min-height: 5.5rem;
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.input:focus-visible,
+.textarea:focus-visible {
+	outline: 2px solid var(--color-kumo-focus, #111827);
+	outline-offset: -1px;
+	border-color: transparent;
+}
+
+.counter {
+	font-variant-numeric: tabular-nums;
+	font-weight: 400;
+	color: var(--color-kumo-subtle, #6b7280);
+}
+
+.counter[data-over="true"] {
+	color: var(--color-kumo-danger, #d63638);
+	font-weight: 600;
+}
+
+.editorActions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	padding-top: 0.25rem;
+}
+
+/* --------------------------------------------------------------- boutons — */
+
+.button {
+	appearance: none;
+	cursor: pointer;
+	padding: 0.375rem 0.75rem;
+	border: 1px solid var(--color-kumo-line, #e5e7eb);
+	border-radius: 0.3125rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+.button:hover:not(:disabled) {
+	background: var(--color-kumo-fill-hover, #f3f4f6);
+}
+
+.button:focus-visible {
+	outline: 2px solid var(--color-kumo-focus, #111827);
+	outline-offset: 1px;
+}
+
+.button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.button[data-variant="primary"] {
+	border-color: transparent;
+	background: var(--color-kumo-accent, #2563eb);
+	color: var(--color-kumo-accent-contrast, #ffffff);
+}
+
+.button[data-variant="primary"]:hover:not(:disabled) {
+	background: var(--color-kumo-brand-hover, var(--color-kumo-accent, #1d4ed8));
+}
+
+.button[data-variant="danger"] {
+	border-color: transparent;
+	background: var(--color-kumo-danger, #d63638);
+	color: #ffffff;
+}
+
+/* Actions d'entrée : discrètes tant que la ligne n'est pas survolée. */
+.quietButton {
+	appearance: none;
+	cursor: pointer;
+	padding: 0.1875rem 0.4375rem;
+	border: 1px solid transparent;
+	border-radius: 0.25rem;
+	background: transparent;
+	color: var(--color-kumo-subtle, #6b7280);
+	font: inherit;
+	font-size: 0.75rem;
+}
+
+.quietButton:hover:not(:disabled) {
+	border-color: var(--color-kumo-line, #e5e7eb);
+	color: var(--color-kumo-contrast, #111827);
+}
+
+.quietButton:focus-visible {
+	outline: 2px solid var(--color-kumo-focus, #111827);
+	outline-offset: 1px;
+}
+
+.quietButton[data-tone="danger"]:hover:not(:disabled) {
+	border-color: var(--color-kumo-danger, #d63638);
+	color: var(--color-kumo-danger, #d63638);
+}
+
+/* Confirmation en deux temps, à la place d'un `confirm()` bloquant. */
+.confirm {
+	display: flex;
+	align-items: center;
+	gap: 0.375rem;
+	font-size: 0.75rem;
+	color: var(--color-kumo-subtle, #6b7280);
+}
+
+/* ----------------------------------------------------------- états, vides */
+
+.status {
+	margin: 0;
+	padding: 0.5rem 0.6875rem;
+	border-radius: 0.3125rem;
+	font-size: 0.8125rem;
+}
+
+.status[data-tone="error"] {
+	background: var(--color-kumo-danger-tint, #fef2f2);
+	color: var(--color-kumo-danger, #b91c1c);
+}
+
+.status[data-tone="success"] {
+	background: var(--color-kumo-success-tint, #f0fdf4);
+	color: var(--color-kumo-success, #15803d);
+}
+
+/*
+ * Un écran vide est une invitation à agir : il dit ce que produit le premier
+ * terme, pas seulement qu'il n'y a rien.
+ */
+.empty {
+	margin: 0;
+	padding: 2rem 1rem;
+	max-width: 44ch;
+	font-size: 0.8125rem;
+	line-height: 1.6;
+	color: var(--color-kumo-subtle, #6b7280);
+}
+
+.emptyLead {
+	display: block;
+	margin-bottom: 0.375rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--color-kumo-contrast, #111827);
+}
+
+/* ------------------------------------------- widget de champ (mark button) */
+
+/*
+ * Le widget vit dans le formulaire d'édition d'un article, pas sur une page
+ * pleine : il reprend le vocabulaire visuel du lexique mais reste compact et
+ * sans bordure propre — l'éditeur pose déjà la sienne autour du champ.
+ */
+.widget {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	font-size: 0.875rem;
+	color: var(--color-kumo-contrast, #111827);
+}
+
+.widgetLabel {
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.widgetHint {
+	margin: 0;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	color: var(--color-kumo-subtle, #6b7280);
+}
+
+.chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.375rem;
+}
+
+.chip {
+	appearance: none;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.375rem;
+	padding: 0.25rem 0.5625rem;
+	border: 1px solid var(--color-kumo-line, #e5e7eb);
+	border-radius: 999px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 0.8125rem;
+}
+
+.chip:hover {
+	background: var(--color-kumo-fill-hover, #f3f4f6);
+}
+
+.chip:focus-visible {
+	outline: 2px solid var(--color-kumo-focus, #111827);
+	outline-offset: 1px;
+}
+
+.chip[data-copied="true"] {
+	border-color: transparent;
+	background: var(--color-kumo-success-tint, #dcfce7);
+	color: var(--color-kumo-success, #15803d);
+}
+
+.chipMark {
+	font-size: 0.6875rem;
+	opacity: 0.75;
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 62rem) {
+	.body {
+		grid-template-columns: auto minmax(0, 1fr);
+	}
+
+	.editor {
+		position: static;
+		grid-column: 1 / -1;
+		grid-row: 1;
+	}
+}
+
+@media (max-width: 40rem) {
+	.root {
+		--glossary-gutter: 1rem;
+	}
+
+	.body {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	/* Le rail bascule en bande horizontale défilante plutôt que de disparaître. */
+	.rail {
+		position: static;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		gap: 0.125rem;
+		overflow-x: auto;
+		padding-bottom: 0.25rem;
+	}
+
+	.entry {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.entryActions {
+		grid-row: auto;
+		grid-column: 1;
+		padding-top: 0.25rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.root * {
+		scroll-behavior: auto !important;
+	}
+}

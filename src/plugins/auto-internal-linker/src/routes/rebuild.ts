@@ -5,91 +5,132 @@ import { indexEntry } from "../infrastructure/index-entry";
 import { createKvConfigStore } from "../infrastructure/kv-config";
 import { createKeywordIndexStore } from "../infrastructure/keyword-index-store";
 
-/** Taille de page du balayage des articles. */
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 5;
+const LEASE_MS = 30_000;
+const REBUILD_STATE_KEY = "jobs:rebuild";
 
-/** Nombre d'articles indexés avant de rendre la main à l'évent loop. */
-const CHUNK_SIZE = 10;
-
-export const rebuildInputSchema = z.object({});
+export const rebuildInputSchema = z.object({
+	jobId: z.string().min(8).max(100),
+}).strict();
 
 export type RebuildInput = z.infer<typeof rebuildInputSchema>;
 
-export interface RebuildOutput {
+interface RebuildState {
+	jobId: string;
+	collectionIndex: number;
+	cursor?: string;
 	entriesProcessed: number;
 	keywordsIndexed: number;
-	orphansPurged: number;
-	publishedCount: number;
+	staleCollections: string[];
+	expiresAt: number;
 }
 
-/** Rend temporairement la main à l'évent loop pour éviter de bloquer un Worker. */
-function yieldCpu(): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, 0));
-}
+export type RebuildOutput =
+	| { status: "running"; jobId: string; entriesProcessed: number; keywordsIndexed: number; collection: string }
+	| { status: "complete"; jobId: string; entriesProcessed: number; keywordsIndexed: number }
+	| { status: "busy"; jobId: string; entriesProcessed: number; keywordsIndexed: number; retryAfterMs: number };
 
-/**
- * Reconstruit l'index depuis zéro.
- *
- * Sert à deux choses : l'amorçage sur un site déjà rempli, où aucun article
- * publié n'est passé par le hook d'indexation, et le rattrapage après un
- * changement de réglages — activer une source ou changer un motif d'URL rend
- * l'index existant obsolète sans qu'aucun article n'ait bougé.
- *
- * Rejouable : `replaceForTarget` purge avant d'insérer, et une passe finale
- * supprime les entrées orphelines (articles devenus brouillons, corbeille,
- * ou d'une collection désactivée).
- */
 export async function rebuildRouteHandler(
-	_input: RebuildInput,
+	input: RebuildInput,
 	ctx: PluginContext,
 ): Promise<RebuildOutput> {
-	const config = await createKvConfigStore(ctx).get();
-	const indexStore = createKeywordIndexStore(ctx);
-	const processedIds = new Set<string>();
-	let entriesProcessed = 0;
-	let keywordsIndexed = 0;
-	let publishedCount = 0;
+	if (!ctx.content) throw new Error("Accès contenu indisponible");
 
-	for (const collection of config.analyzableCollections) {
-		let cursor: string | undefined;
-
-		do {
-			const page = await ctx.content?.list(collection, {
-				where: { status: "published" },
-				limit: PAGE_SIZE,
-				cursor,
-			});
-			if (!page) break;
-			publishedCount += page.items.length;
-
-			for (let i = 0; i < page.items.length; i += CHUNK_SIZE) {
-				const chunk = page.items.slice(i, i + CHUNK_SIZE);
-				const counts = await Promise.all(
-					chunk.map(async (item) => {
-						const entry = contentItemToEntry(item);
-						if (entry.id) processedIds.add(String(entry.id));
-						return indexEntry(ctx, entry, collection);
-					}),
-				);
-
-				keywordsIndexed += counts.reduce((sum, c) => sum + c, 0);
-				entriesProcessed += chunk.length;
-
-				// Rend la main entre les chunks pour ne pas saturer le CPU/IO.
-				if (i + CHUNK_SIZE < page.items.length) {
-					await yieldCpu();
-				}
-			}
-
-			cursor = page.cursor ?? undefined;
-		} while (cursor);
+	const now = Date.now();
+	let state = await ctx.kv.get<RebuildState>(REBUILD_STATE_KEY);
+	if (state && state.expiresAt > now && state.jobId !== input.jobId) {
+		return {
+			status: "busy",
+			jobId: state.jobId,
+			entriesProcessed: state.entriesProcessed,
+			keywordsIndexed: state.keywordsIndexed,
+			retryAfterMs: state.expiresAt - now,
+		};
 	}
 
-	const orphansPurged = await indexStore.purgeOrphans(processedIds);
+	if (!state || state.expiresAt <= now || state.jobId !== input.jobId) {
+		state = {
+			jobId: input.jobId,
+			collectionIndex: 0,
+			entriesProcessed: 0,
+			keywordsIndexed: 0,
+			staleCollections: await ctx.kv.get<string[]>("jobs:staleCollections") ?? [],
+			expiresAt: now + LEASE_MS,
+		};
+	}
 
-	ctx.log.info(
-		`[auto-internal-linker] index reconstruit : ${entriesProcessed} articles, ${keywordsIndexed} mots-clés, ${orphansPurged} orphelins purgés`,
-	);
+	state.expiresAt = now + LEASE_MS;
+	await ctx.kv.set(REBUILD_STATE_KEY, state);
+	const owner = await ctx.kv.get<RebuildState>(REBUILD_STATE_KEY);
+	if (!owner || owner.jobId !== input.jobId) {
+		return {
+			status: "busy",
+			jobId: owner?.jobId ?? "unknown",
+			entriesProcessed: owner?.entriesProcessed ?? 0,
+			keywordsIndexed: owner?.keywordsIndexed ?? 0,
+			retryAfterMs: Math.max(0, (owner?.expiresAt ?? now) - now),
+		};
+	}
+	state = owner;
+	state.staleCollections ??= [];
+	if (state.staleCollections.length) {
+		const stale = state.staleCollections[0];
+		const cleanup = await createKeywordIndexStore(ctx).purgeCollectionPage(stale);
+		if (!cleanup.hasMore) state.staleCollections.shift();
+		await ctx.kv.set("jobs:staleCollections", state.staleCollections);
+		state.expiresAt = Date.now() + LEASE_MS;
+		await ctx.kv.set(REBUILD_STATE_KEY, state);
+		return { status: "running", jobId: state.jobId, entriesProcessed: state.entriesProcessed, keywordsIndexed: state.keywordsIndexed, collection: `cleanup:${stale}` };
+	}
 
-	return { entriesProcessed, keywordsIndexed, orphansPurged, publishedCount };
+	const config = await createKvConfigStore(ctx).get();
+	const collection = config.analyzableCollections[state.collectionIndex];
+	if (!collection) {
+		await ctx.kv.delete(REBUILD_STATE_KEY);
+		return complete(state);
+	}
+
+	const page = await ctx.content.list(collection, {
+		where: { status: "published" },
+		limit: PAGE_SIZE,
+		cursor: state.cursor,
+	});
+	for (const item of page.items) {
+		state.keywordsIndexed += await indexEntry(ctx, contentItemToEntry(item), collection);
+		state.entriesProcessed++;
+	}
+
+	if (page.hasMore && page.cursor) {
+		state.cursor = page.cursor;
+	} else {
+		state.collectionIndex++;
+		state.cursor = undefined;
+	}
+
+	if (state.collectionIndex >= config.analyzableCollections.length) {
+		await ctx.kv.delete(REBUILD_STATE_KEY);
+		ctx.log.info(
+			`[auto-internal-linker] index reconstruit : ${state.entriesProcessed} articles, ${state.keywordsIndexed} mots-clés`,
+		);
+		return complete(state);
+	}
+
+	state.expiresAt = Date.now() + LEASE_MS;
+	await ctx.kv.set(REBUILD_STATE_KEY, state);
+	return {
+		status: "running",
+		jobId: state.jobId,
+		entriesProcessed: state.entriesProcessed,
+		keywordsIndexed: state.keywordsIndexed,
+		collection: config.analyzableCollections[state.collectionIndex],
+	};
+}
+
+function complete(state: RebuildState): Extract<RebuildOutput, { status: "complete" }> {
+	return {
+		status: "complete",
+		jobId: state.jobId,
+		entriesProcessed: state.entriesProcessed,
+		keywordsIndexed: state.keywordsIndexed,
+	};
 }

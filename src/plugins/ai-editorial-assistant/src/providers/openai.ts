@@ -1,5 +1,7 @@
 import {
 	describeHttpFailure,
+	fetchWithTimeout,
+	readJsonLimited,
 	safeText,
 	ProviderError,
 	type CompletionRequest,
@@ -22,7 +24,7 @@ export function createOpenAiProvider(fetchImpl: HttpFetch, apiKey: string): LlmP
 		id: "openai",
 
 		async complete({ system, user, model, maxTokens }: CompletionRequest): Promise<string> {
-			const response = await fetchImpl(ENDPOINT, {
+			const response = await fetchWithTimeout(fetchImpl, ENDPOINT, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -46,9 +48,9 @@ export function createOpenAiProvider(fetchImpl: HttpFetch, apiKey: string): LlmP
 				);
 			}
 
-			const payload = (await response.json()) as {
+			const payload = await readJsonLimited<{
 				choices?: Array<{ message?: { content?: string } }>;
-			};
+			}>(response);
 			const text = payload.choices?.[0]?.message?.content ?? "";
 
 			if (!text.trim()) throw new ProviderError("openai", "réponse vide");

@@ -34,6 +34,11 @@ function hookHandler(name: "content:afterSave" | "content:afterUnpublish" | "con
 	return plugin.hooks[name].handler;
 }
 
+function lifecycleHandler(name: "content:afterUnpublish" | "content:afterDelete") {
+	const plugin = createPlugin() as unknown as { hooks: Record<string, { handler: (e: unknown, c: PluginContext) => Promise<void> }> };
+	return plugin.hooks[name].handler;
+}
+
 describe("seoProPlugin descriptor", () => {
 	it("declares bare specifiers that resolve to this package", () => {
 		const d = seoProPlugin();
@@ -115,20 +120,12 @@ describe("content:afterSave hook", () => {
 	});
 });
 
-describe("content:afterUnpublish hook", () => {
-	it("purges the stored report", async () => {
-		const { ctx, reports } = createMockCtx();
-		reports.set("01HOOK", { entryId: "01HOOK" });
-		await hookHandler("content:afterUnpublish")(flatEvent("posts"), ctx);
+describe("cycle de vie des rapports", () => {
+	it("supprime rapport et focus lors de la dépublication", async () => {
+		const { ctx, reports, kv } = createMockCtx({ kv: { "focus:01HOOK": "partie" } });
+		await hookHandler()(flatEvent("posts"), ctx);
+		await lifecycleHandler("content:afterUnpublish")(flatEvent("posts"), ctx);
 		expect(reports.has("01HOOK")).toBe(false);
-	});
-});
-
-describe("content:afterDelete hook", () => {
-	it("purges the stored report by event id", async () => {
-		const { ctx, reports } = createMockCtx();
-		reports.set("01DEL", { entryId: "01DEL" });
-		await hookHandler("content:afterDelete")({ id: "01DEL" }, ctx);
-		expect(reports.has("01DEL")).toBe(false);
+		expect(kv.has("focus:01HOOK")).toBe(false);
 	});
 });
