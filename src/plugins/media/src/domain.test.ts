@@ -1,0 +1,4 @@
+import { describe, expect, it } from "vitest";
+import { altFromFilename, cdnUrl, searchAssets, type MediaAsset } from "./domain";
+const asset=(overrides:Partial<MediaAsset>={}):MediaAsset=>({id:"1",mediaId:"1",filename:"mont-blanc.jpg",mimeType:"image/jpeg",size:1,sourceUrl:"/media/mont-blanc.jpg",title:"Mont Blanc",alt:"Sommet enneigé",caption:"",tags:["alpes"],ocrText:"",status:"ready",createdAt:"2026-01-01",updatedAt:"2026-01-01",...overrides});
+describe("media domain",()=>{it("produit un ALT lisible",()=>expect(altFromFilename("mon_super-fichier.jpg")).toBe("Mon super fichier"));it("recherche dans toutes les métadonnées",()=>expect(searchAssets([asset()],"alpes enneigé")).toHaveLength(1));it("réécrit une URL CDN",()=>expect(cdnUrl("https://site.test/media/a.jpg","https://cdn.test/")).toBe("https://cdn.test/media/a.jpg"));});

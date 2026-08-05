@@ -1,0 +1,23 @@
+---
+export const prerender = false;
+const token = Astro.url.searchParams.get("token") ?? "";
+const destination = Astro.url.searchParams.get("url") ?? "";
+---
+<!doctype html>
+<html lang="fr">
+	<head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>Redirection…</title></head>
+	<body>
+		<p id="status" role="status">Vérification du lien…</p>
+		<script is:inline define:vars={{ token, destination }}>
+			(async () => {
+				const status = document.getElementById("status");
+				try {
+					const response = await fetch("/_emdash/api/plugins/cannelle-newsletter/click", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, url: destination }) });
+					const payload = await response.json(); const data = payload?.data ?? payload;
+					if (!response.ok || !data?.accepted || typeof data.redirect !== "string") throw new Error();
+					location.replace(data.redirect);
+				} catch { if (status) status.textContent = "Ce lien est invalide ou a expiré."; }
+			})();
+		</script>
+	</body>
+</html>

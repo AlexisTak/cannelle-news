@@ -1,0 +1,222 @@
+---
+interface Props {
+	formId: string;
+	class?: string;
+	successMessage?: string;
+	newsletterListId?: string;
+	newsletterEmailField?: string;
+	newsletterConsentField?: string;
+}
+
+const {
+	formId,
+	class: className,
+	successMessage = "Merci, votre réponse a bien été enregistrée.",
+	newsletterListId,
+	newsletterEmailField = "email",
+	newsletterConsentField,
+} = Astro.props;
+---
+
+<cannelle-form
+	class:list={["cannelle-form", className]}
+	data-form-id={formId}
+	data-success-message={successMessage}
+	data-newsletter-list-id={newsletterListId}
+	data-newsletter-email-field={newsletterEmailField}
+	data-newsletter-consent-field={newsletterConsentField}
+>
+	<p class="cannelle-form__loading" role="status">Chargement du formulaire…</p>
+</cannelle-form>
+
+<script>
+	type PublicField = {
+		id: string;
+		name: string;
+		label: string;
+		type: "text" | "textarea" | "email" | "number" | "checkbox" | "select" | "consent";
+		required: boolean;
+		minLength?: number;
+		maxLength?: number;
+		min?: number;
+		max?: number;
+		options?: Array<{ label: string; value: string }>;
+	};
+
+	type PublicForm = { id: string; title: string; version: number; fields: PublicField[] };
+
+	function createInput(field: PublicField): HTMLElement {
+		if (field.type === "textarea") {
+			const input = document.createElement("textarea");
+			input.rows = 6;
+			return input;
+		}
+		if (field.type === "select") {
+			const select = document.createElement("select");
+			const placeholder = document.createElement("option");
+			placeholder.value = "";
+			placeholder.textContent = "Sélectionnez une option";
+			select.append(placeholder);
+			for (const option of field.options ?? []) {
+				const element = document.createElement("option");
+				element.value = option.value;
+				element.textContent = option.label;
+				select.append(element);
+			}
+			return select;
+		}
+		const input = document.createElement("input");
+		input.type = field.type === "consent" ? "checkbox" : field.type;
+		return input;
+	}
+
+	function renderField(field: PublicField): HTMLElement {
+		const wrapper = document.createElement("div");
+		wrapper.className = `cannelle-form__field cannelle-form__field--${field.type}`;
+		const input = createInput(field) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+		input.id = `cannelle-${field.id}`;
+		input.name = field.name;
+		input.required = field.required;
+		if ("minLength" in input && field.minLength !== undefined) input.minLength = field.minLength;
+		if ("maxLength" in input && field.maxLength !== undefined) input.maxLength = field.maxLength;
+		if (input instanceof HTMLInputElement && field.min !== undefined) input.min = String(field.min);
+		if (input instanceof HTMLInputElement && field.max !== undefined) input.max = String(field.max);
+		const label = document.createElement("label");
+		label.htmlFor = input.id;
+		label.textContent = field.label;
+		if (field.required) {
+			const required = document.createElement("span");
+			required.className = "cannelle-form__required";
+			required.textContent = " *";
+			required.setAttribute("aria-hidden", "true");
+			label.append(required);
+		}
+		if (field.type === "checkbox" || field.type === "consent") wrapper.append(input, label);
+		else wrapper.append(label, input);
+		const error = document.createElement("p");
+		error.className = "cannelle-form__error";
+		error.id = `${input.id}-error`;
+		error.hidden = true;
+		wrapper.append(error);
+		return wrapper;
+	}
+
+	function valuesFromForm(form: HTMLFormElement, fields: PublicField[]): Record<string, string | number | boolean> {
+		const values: Record<string, string | number | boolean> = {};
+		for (const field of fields) {
+			const element = form.elements.namedItem(field.name) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+			if (!element) continue;
+			if (field.type === "checkbox" || field.type === "consent") values[field.name] = (element as HTMLInputElement).checked;
+			else if (field.type === "number" && element.value !== "") values[field.name] = Number(element.value);
+			else values[field.name] = element.value;
+		}
+		return values;
+	}
+
+	async function mount(root: HTMLElement) {
+		const formId = root.dataset.formId;
+		if (!formId) return;
+		try {
+			const definitionResponse = await fetch(`/_emdash/api/plugins/cannelle-forms/public?id=${encodeURIComponent(formId)}`, { headers: { Accept: "application/json" } });
+			if (!definitionResponse.ok) throw new Error("Le formulaire est indisponible.");
+			const { form: definition } = await definitionResponse.json() as { form: PublicForm };
+			const form = document.createElement("form");
+			form.className = "cannelle-form__form";
+			const title = document.createElement("h2");
+			title.className = "cannelle-form__title";
+			title.textContent = definition.title;
+			form.append(title);
+			for (const field of definition.fields) form.append(renderField(field));
+
+			const honeypot = document.createElement("input");
+			honeypot.type = "text";
+			honeypot.name = "_cannelle_website";
+			honeypot.tabIndex = -1;
+			honeypot.autocomplete = "off";
+			honeypot.className = "cannelle-form__honeypot";
+			honeypot.setAttribute("aria-hidden", "true");
+			form.append(honeypot);
+
+			const status = document.createElement("p");
+			status.className = "cannelle-form__status";
+			status.setAttribute("role", "status");
+			status.setAttribute("aria-live", "polite");
+			const submit = document.createElement("button");
+			submit.type = "submit";
+			submit.className = "cannelle-form__submit";
+			submit.textContent = "Envoyer";
+			form.append(status, submit);
+
+			form.addEventListener("submit", async (event) => {
+				event.preventDefault();
+				if (!form.reportValidity()) return;
+				submit.disabled = true;
+				status.textContent = "Envoi en cours…";
+				form.querySelectorAll<HTMLElement>(".cannelle-form__error").forEach((element) => { element.hidden = true; element.textContent = ""; });
+				try {
+					const response = await fetch("/_emdash/api/plugins/cannelle-forms/submit", {
+						method: "POST",
+						headers: { "Content-Type": "application/json", Accept: "application/json" },
+						body: JSON.stringify({ formId: definition.id, values: valuesFromForm(form, definition.fields), _cannelle_website: honeypot.value }),
+					});
+					const data = await response.json() as { error?: { message?: string; details?: { issues?: Array<{ field: string; message: string }> } } };
+					if (!response.ok) {
+						for (const issue of data.error?.details?.issues ?? []) {
+							const input = form.elements.namedItem(issue.field) as HTMLElement | null;
+							const error = input ? document.getElementById(`${input.id}-error`) : null;
+							if (error) { error.textContent = issue.message; error.hidden = false; input?.setAttribute("aria-describedby", error.id); }
+						}
+						throw new Error(data.error?.message ?? "L'envoi a échoué.");
+					}
+					const submittedValues = valuesFromForm(form, definition.fields);
+					const newsletterListId = root.dataset.newsletterListId;
+					const consentField = root.dataset.newsletterConsentField;
+					const emailField = root.dataset.newsletterEmailField ?? "email";
+					if (newsletterListId && consentField && submittedValues[consentField] === true && typeof submittedValues[emailField] === "string") {
+						void fetch("/_emdash/api/plugins/cannelle-newsletter/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: submittedValues[emailField], listId: newsletterListId, source: `form:${definition.id}` }) })
+							.then((response) => { if (response.ok) document.dispatchEvent(new CustomEvent("cannelle:newsletter-subscribed", { detail: { listId: newsletterListId, formId: definition.id } })); });
+					}
+					form.reset();
+					status.textContent = root.dataset.successMessage ?? "Merci, votre réponse a bien été enregistrée.";
+					status.classList.add("cannelle-form__status--success");
+					document.dispatchEvent(new CustomEvent("cannelle:form-submitted", { detail: { formId: definition.id } }));
+				} catch (error) {
+					status.textContent = error instanceof Error ? error.message : "L'envoi a échoué.";
+					status.classList.remove("cannelle-form__status--success");
+				} finally {
+					submit.disabled = false;
+				}
+			});
+			root.replaceChildren(form);
+		} catch (error) {
+			root.innerHTML = "";
+			const message = document.createElement("p");
+			message.className = "cannelle-form__status cannelle-form__status--error";
+			message.setAttribute("role", "alert");
+			message.textContent = error instanceof Error ? error.message : "Le formulaire est indisponible.";
+			root.append(message);
+		}
+	}
+
+	document.querySelectorAll<HTMLElement>("cannelle-form").forEach((root) => {
+		if (!root.dataset.mounted) { root.dataset.mounted = "true"; void mount(root); }
+	});
+</script>
+
+<style>
+	.cannelle-form { display: block; max-width: 42rem; margin-block: var(--sp-8, 2rem); }
+	.cannelle-form__form { display: grid; gap: var(--sp-5, 1.25rem); }
+	.cannelle-form__title { margin: 0; font-family: var(--font-display, serif); }
+	.cannelle-form__field { display: grid; gap: 0.4rem; }
+	.cannelle-form__field--checkbox, .cannelle-form__field--consent { grid-template-columns: auto 1fr; align-items: start; }
+	.cannelle-form__field--checkbox .cannelle-form__error, .cannelle-form__field--consent .cannelle-form__error { grid-column: 1 / -1; }
+	.cannelle-form label { font-family: var(--font-meta, sans-serif); font-weight: 600; }
+	.cannelle-form input:not([type="checkbox"]), .cannelle-form textarea, .cannelle-form select { width: 100%; padding: 0.75rem; border: 1px solid var(--color-rule, #bbb); background: var(--color-surface, #fff); color: inherit; font: inherit; }
+	.cannelle-form input:focus-visible, .cannelle-form textarea:focus-visible, .cannelle-form select:focus-visible, .cannelle-form button:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+	.cannelle-form__required, .cannelle-form__error, .cannelle-form__status--error { color: #a32121; }
+	.cannelle-form__error, .cannelle-form__status { margin: 0; font-family: var(--font-meta, sans-serif); font-size: 0.9rem; }
+	.cannelle-form__status--success { color: #176b3a; }
+	.cannelle-form__submit { justify-self: start; padding: 0.75rem 1.25rem; border: 0; background: var(--color-ink, #111); color: var(--color-surface, #fff); font-family: var(--font-meta, sans-serif); font-weight: 700; cursor: pointer; }
+	.cannelle-form__submit:disabled { cursor: wait; opacity: 0.6; }
+	.cannelle-form__honeypot { position: absolute !important; inline-size: 1px !important; block-size: 1px !important; overflow: hidden !important; clip-path: inset(50%) !important; }
+</style>

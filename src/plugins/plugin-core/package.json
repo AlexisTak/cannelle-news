@@ -1,0 +1,12 @@
+{
+  "name": "@cannelle/plugin-core",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "emdash": ">=0.30.0"
+  }
+}
