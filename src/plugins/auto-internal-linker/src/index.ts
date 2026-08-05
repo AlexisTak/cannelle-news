@@ -4,6 +4,7 @@ import { applyAcceptedLinks } from "./infrastructure/apply-accepted";
 import { createKvConfigStore } from "./infrastructure/kv-config";
 import { indexEntry } from "./infrastructure/index-entry";
 import { createKeywordIndexStore } from "./infrastructure/keyword-index-store";
+import { auditRouteHandler, auditInputSchema, type AuditInput } from "./routes/audit";
 import { rebuildRouteHandler, rebuildInputSchema, type RebuildInput } from "./routes/rebuild";
 import { toRouteResult } from "./routes/result";
 import { settingsRouteHandler, settingsInputSchema, type SettingsInput } from "./routes/settings";
@@ -20,7 +21,14 @@ export function autoInternalLinkerPlugin(): PluginDescriptor {
 		format: "native",
 		entrypoint: "@cannelle/plugin-auto-internal-linker",
 		adminEntry: "@cannelle/plugin-auto-internal-linker/admin",
-		adminPages: [{ path: "/settings", label: "Maillage interne", icon: "link" }],
+		adminPages: [
+			{ path: "/settings", label: "Maillage interne", icon: "link" },
+			{ path: "/audit", label: "Audit de maillage", icon: "alert" },
+		],
+		adminWidgets: [
+			{ id: "linker-health", title: "Santé du maillage interne", size: "half" },
+			{ id: "linker-audit", title: "Audit de maillage", size: "half" },
+		],
 		fieldWidgets: [
 			{
 				name: "suggestions",
@@ -50,7 +58,14 @@ export function createPlugin() {
 
 		admin: {
 			entry: "@cannelle/plugin-auto-internal-linker/admin",
-			pages: [{ path: "/settings", label: "Maillage interne", icon: "link" }],
+			pages: [
+				{ path: "/settings", label: "Maillage interne", icon: "link" },
+				{ path: "/audit", label: "Audit de maillage", icon: "alert" },
+			],
+			widgets: [
+				{ id: "linker-health", title: "Santé du maillage interne", size: "half" },
+				{ id: "linker-audit", title: "Audit de maillage", size: "half" },
+			],
 			fieldWidgets: [
 				{
 					name: "suggestions",
@@ -77,6 +92,11 @@ export function createPlugin() {
 				input: settingsInputSchema,
 				handler: async (ctx) =>
 					toRouteResult(() => settingsRouteHandler(ctx.input as SettingsInput, ctx)),
+			},
+			audit: {
+				input: auditInputSchema,
+				handler: async (ctx) =>
+					toRouteResult(() => auditRouteHandler(ctx.input as AuditInput, ctx)),
 			},
 		},
 

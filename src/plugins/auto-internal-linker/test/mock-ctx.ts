@@ -86,13 +86,25 @@ export function createMockCtx(options: MockCtxOptions = {}) {
 				const item = options.content?.[id];
 				return item ? { ...item, type: _collection, status: "published", locale: null } : null;
 			},
-			async list(_collection: string, opts: { cursor?: string; limit?: number } = {}) {
-				const items = Object.values(options.content ?? {}).map((item) => ({
+			async list(
+				_collection: string,
+				opts: { cursor?: string; limit?: number; where?: Record<string, unknown> } = {},
+			) {
+				let items = Object.values(options.content ?? {}).map((item) => ({
 					...item,
 					type: _collection,
 					status: "published",
 					locale: null,
 				}));
+
+				if (opts.where) {
+					items = items.filter((item) =>
+						Object.entries(opts.where as Record<string, unknown>).every(
+							([key, value]) => (item as Record<string, unknown>)[key] === value,
+						),
+					);
+				}
+
 				const offset = opts.cursor ? Number(opts.cursor) : 0;
 				const limit = opts.limit ?? 100;
 				const page = items.slice(offset, offset + limit);

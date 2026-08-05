@@ -5,6 +5,10 @@ import type { KeywordIndexStore } from "../ports/keyword-index";
 /** Taille de page des lectures paginées. */
 const PAGE_SIZE = 100;
 
+function yieldCpu(): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 interface StorageCollection {
 	putMany(items: Array<{ id: string; data: unknown }>): Promise<void>;
 	deleteMany(ids: string[]): Promise<number>;
@@ -60,16 +64,47 @@ export function createKeywordIndexStore(ctx: PluginContext): KeywordIndexStore {
 			return collection.deleteMany(ids);
 		},
 
-		async all(): Promise<IndexedKeyword[]> {
-			const keywords: IndexedKeyword[] = [];
+		async purgeOrphans(keepTargetIds: Set<string>): Promise<number> {
+			const orphans = new Set<string>();
 			let cursor: string | undefined;
 
 			do {
 				const page = await collection.query({ limit: PAGE_SIZE, cursor });
-				keywords.push(...page.items.map((item) => item.data as IndexedKeyword));
-				cursor = page.cursor;
+				for (const item of page.items) {
+					const keyword = item.data as IndexedKeyword;
+					if (!keepTargetIds.has(keyword.targetId)) {
+						orphans.add(keyword.targetId);
+					}
+				}
+				cursor = page.cursor ?? undefined;
 			} while (cursor);
 
+			let total = 0;
+			for (const targetId of orphans) {
+				total += await store.purgeTarget(targetId);
+			}
+			return total;
+		},
+
+		async stream(
+			callback: (page: IndexedKeyword[]) => void | Promise<void>,
+		): Promise<void> {
+			let cursor: string | undefined;
+
+			do {
+				const page = await collection.query({ limit: PAGE_SIZE, cursor });
+				const keywords = page.items.map((item) => item.data as IndexedKeyword);
+				await callback(keywords);
+				cursor = page.cursor;
+				if (cursor) await yieldCpu();
+			} while (cursor);
+		},
+
+		async all(): Promise<IndexedKeyword[]> {
+			const keywords: IndexedKeyword[] = [];
+			await store.stream((page) => {
+				keywords.push(...page);
+			});
 			return keywords;
 		},
 
