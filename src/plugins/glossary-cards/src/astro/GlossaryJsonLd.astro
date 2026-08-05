@@ -1,6 +1,7 @@
 ---
 import type { PortableTextBlock } from "emdash";
 import { collectGlossaryMarks } from "../lib/portable-text";
+import { serializeJsonLd } from "../lib/json-ld";
 
 interface Props {
   blocks: PortableTextBlock[];
@@ -31,4 +32,4 @@ const graph = unique.map((m) => ({
 }));
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(graph.length === 1 ? graph[0] : graph)} is:inline />
+<script type="application/ld+json" set:html={serializeJsonLd(graph.length === 1 ? graph[0] : graph)} is:inline />

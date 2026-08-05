@@ -21,20 +21,13 @@ function abortableCtx(): PluginContext {
     http: {
       fetch: vi.fn(async (_input: string | URL, init?: RequestInit) => {
         const signal = init?.signal as AbortSignal | undefined;
-        return {
-          ok: true,
-          status: 200,
-          json: () =>
-            new Promise((_resolve, reject) => {
-              if (signal?.aborted) {
-                reject(new DOMException("The operation was aborted.", "AbortError"));
-                return;
-              }
-              signal?.addEventListener("abort", () => {
-                reject(new DOMException("The operation was aborted.", "AbortError"));
-              });
-            }),
-        } as Response;
+        return new Response(new ReadableStream({
+          start(controller) {
+            const abort = () => controller.error(new DOMException("The operation was aborted.", "AbortError"));
+            if (signal?.aborted) abort();
+            else signal?.addEventListener("abort", abort, { once: true });
+          },
+        }));
       }),
     },
     log: { error: vi.fn() },

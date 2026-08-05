@@ -38,6 +38,9 @@ export async function getTermRouteHandler(input: { id: string }, ctx: PluginCont
 export async function saveTermRouteHandler(input: SaveTermInput, ctx: PluginContext): Promise<TermOutput> {
 	const store = createGlossaryStore(ctx);
 	const id = input.id ?? slugify(input.term);
+	if (!input.id && await store.get(id)) {
+		throw new Error(`Un terme utilise déjà l’identifiant « ${id} »`);
+	}
 	await store.save({
 		id,
 		term: input.term.trim(),

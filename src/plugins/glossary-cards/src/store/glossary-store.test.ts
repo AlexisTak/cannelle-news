@@ -23,6 +23,34 @@ describe("createGlossaryStore", () => {
 		expect(term?.aliases).toContain("large language model");
 	});
 
+	it("retrieves a term by its storage key without querying an id index", async () => {
+		const query = async () => {
+			throw new Error("id is not an indexed field");
+		};
+		const ctx = createMockPluginContext({
+			storage: {
+				terms: {
+					get: async (id: string) =>
+						id === "llm"
+							? {
+								id,
+								term: "LLM",
+								definition: "Large Language Model",
+								fullUrl: null,
+								aliases: [],
+								createdAt: "2026-08-05T00:00:00.000Z",
+								updatedAt: "2026-08-05T00:00:00.000Z",
+							  }
+							: null,
+					query,
+				},
+			},
+		});
+		const store = createGlossaryStore(ctx);
+
+		await expect(store.get("llm")).resolves.toMatchObject({ term: "LLM" });
+	});
+
 	it("finds a term by alias", async () => {
 		const { store } = await setup();
 		await store.save({

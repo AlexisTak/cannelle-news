@@ -17,11 +17,15 @@ export function createStorageReportStore(ctx: PluginContext): ReportStore {
 			await reports.put(report.entryId, report);
 		},
 
-		async query({ collection, limit, cursor, sort = "score" }) {
+		async delete(entryId: string): Promise<boolean> {
+			return reports.delete(entryId);
+		},
+
+		async query({ collection, grade, limit, cursor, sort = "score" }) {
 			const orderBy: Record<string, "asc" | "desc"> =
 				sort === "analyzedAt" ? { analyzedAt: "desc" } : { score: "desc" };
 			const result = await reports.query({
-				where: collection ? { collection } : undefined,
+				where: collection || grade ? { ...(collection ? { collection } : {}), ...(grade ? { grade } : {}) } : undefined,
 				orderBy,
 				limit,
 				cursor,

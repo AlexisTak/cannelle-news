@@ -46,9 +46,22 @@ export function buildTargetUrl(
 	collection: string,
 	slug: string | null,
 	patterns: Record<string, string>,
+	siteUrl: string | null = null,
 ): string | null {
 	if (!slug) return null;
 	const pattern = patterns[collection];
 	if (!pattern) return null;
-	return pattern.replace("{slug}", slug);
+	const candidate = pattern.replace("{slug}", slug);
+	if (/[\\\u0000-\u001f]/.test(candidate)) return null;
+
+	try {
+		const base = siteUrl ? new URL(siteUrl) : new URL("https://site.invalid");
+		const resolved = new URL(candidate, base);
+		if (!siteUrl && (!candidate.startsWith("/") || candidate.startsWith("//"))) return null;
+		if (resolved.protocol !== "https:" && resolved.protocol !== "http:") return null;
+		if (resolved.origin !== base.origin) return null;
+		return siteUrl ? resolved.href : `${resolved.pathname}${resolved.search}${resolved.hash}`;
+	} catch {
+		return null;
+	}
 }

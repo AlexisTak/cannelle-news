@@ -20,15 +20,37 @@ const lookupInputSchema = z.object({
   force: z.boolean().default(false),
 });
 
+const researchPaperBlocks: NonNullable<PluginDescriptor["portableTextBlocks"]> = [
+  {
+    type: "researchPaper",
+    label: "Research Paper",
+    icon: "link-external",
+    placeholder: "Paste arXiv URL or DOI...",
+    fields: [
+      { type: "text_input", action_id: "url", label: "arXiv URL or DOI" },
+      { type: "toggle", action_id: "manual", label: "Manual metadata" },
+    ],
+  },
+];
+
 export async function lookupHandler(
   input: LookupInput,
-  ctx: PluginContext
+  ctx: PluginContext,
+  staleDays = 7,
 ): Promise<LookupResult> {
   const id = identify(input.url);
   if (!id.source) return { ok: false, reason: "unrecognized" };
-  return id.source === "arxiv"
+  const cacheKey = `paper:${id.source}:${id.id}`;
+  if (!input.force && ctx.kv) {
+    const cached = await ctx.kv.get<LookupResult>(cacheKey);
+    if (cached?.ok && Date.now() - Date.parse(cached.paper.fetchedAt) < staleDays * 86_400_000) return cached;
+  }
+  const result = id.source === "arxiv"
     ? fetchArxiv(id.id, ctx)
     : fetchCrossref(id.id, ctx);
+  const resolved = await result;
+  if (resolved.ok && ctx.kv) await ctx.kv.set(cacheKey, resolved);
+  return resolved;
 }
 
 export function researchPaperEmbedPlugin(
@@ -41,6 +63,7 @@ export function researchPaperEmbedPlugin(
     entrypoint: "@cannelle/plugin-research-paper-embed",
     componentsEntry: "@cannelle/plugin-research-paper-embed/astro",
     adminEntry: "@cannelle/plugin-research-paper-embed/admin",
+    portableTextBlocks: researchPaperBlocks,
     options,
   };
 }
@@ -56,25 +79,14 @@ export function createPlugin(options: ResearchPaperEmbedOptions = {}) {
 
     admin: {
       entry: "@cannelle/plugin-research-paper-embed/admin",
-      portableTextBlocks: [
-        {
-          type: "researchPaper",
-          label: "Research Paper",
-          icon: "link-external",
-          placeholder: "Paste arXiv URL or DOI...",
-          fields: [
-            { type: "text_input", action_id: "url", label: "arXiv URL or DOI" },
-            { type: "toggle", action_id: "manual", label: "Manual metadata" },
-          ],
-        },
-      ],
+      portableTextBlocks: researchPaperBlocks,
     },
 
     routes: {
       lookup: {
         input: lookupInputSchema,
         handler: async (ctx) =>
-          lookupHandler(ctx.input as LookupInput, ctx as PluginContext),
+          lookupHandler(ctx.input as LookupInput, ctx as PluginContext, staleDays),
       },
     },
 

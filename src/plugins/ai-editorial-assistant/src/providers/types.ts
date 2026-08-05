@@ -13,6 +13,36 @@
  */
 export type HttpFetch = (url: string, init?: RequestInit) => Promise<Response>;
 
+const MAX_RESPONSE_BYTES = 1_000_000;
+const PROVIDER_TIMEOUT_MS = 30_000;
+
+export async function fetchWithTimeout(fetchImpl: HttpFetch, url: string, init: RequestInit = {}): Promise<Response> {
+	// Le signal reste attaché au corps de la réponse après réception des
+	// en-têtes : le délai couvre donc aussi la lecture JSON, pas seulement fetch().
+	return fetchImpl(url, { ...init, signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS) });
+}
+
+export async function readJsonLimited<T>(response: Response): Promise<T> {
+	const text = await readTextLimited(response, MAX_RESPONSE_BYTES);
+	return JSON.parse(text) as T;
+}
+
+async function readTextLimited(response: Response, maxBytes: number): Promise<string> {
+	const declared = Number(response.headers.get("content-length") ?? 0);
+	if (declared > maxBytes) throw new Error("réponse fournisseur trop volumineuse");
+	if (!response.body) return "";
+	const reader = response.body.getReader(), decoder = new TextDecoder();
+	let size = 0, text = "";
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		size += value.byteLength;
+		if (size > maxBytes) { await reader.cancel(); throw new Error("réponse fournisseur trop volumineuse"); }
+		text += decoder.decode(value, { stream: true });
+	}
+	return text + decoder.decode();
+}
+
 export interface CompletionRequest {
 	system: string;
 	user: string;
@@ -69,7 +99,7 @@ export function describeHttpFailure(provider: ProviderId, status: number, body: 
 /** Lecture du corps d'erreur sans jamais faire échouer la gestion d'erreur. */
 export async function safeText(response: Response): Promise<string> {
 	try {
-		return await response.text();
+		return await readTextLimited(response, 8_192);
 	} catch {
 		return "";
 	}

@@ -31,6 +31,11 @@ function hookHandler() {
 	return plugin.hooks["content:afterSave"].handler;
 }
 
+function lifecycleHandler(name: "content:afterUnpublish" | "content:afterDelete") {
+	const plugin = createPlugin() as unknown as { hooks: Record<string, { handler: (e: unknown, c: PluginContext) => Promise<void> }> };
+	return plugin.hooks[name].handler;
+}
+
 describe("seoProPlugin descriptor", () => {
 	it("declares bare specifiers that resolve to this package", () => {
 		const d = seoProPlugin();
@@ -106,5 +111,15 @@ describe("content:afterSave hook", () => {
 		delete event.content.id;
 		await hookHandler()(event, ctx);
 		expect(reports.size).toBe(0);
+	});
+});
+
+describe("cycle de vie des rapports", () => {
+	it("supprime rapport et focus lors de la dépublication", async () => {
+		const { ctx, reports, kv } = createMockCtx({ kv: { "focus:01HOOK": "partie" } });
+		await hookHandler()(flatEvent("posts"), ctx);
+		await lifecycleHandler("content:afterUnpublish")(flatEvent("posts"), ctx);
+		expect(reports.has("01HOOK")).toBe(false);
+		expect(kv.has("focus:01HOOK")).toBe(false);
 	});
 });

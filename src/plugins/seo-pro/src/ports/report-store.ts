@@ -2,6 +2,7 @@ import type { SeoReport } from "../domain/report";
 
 export interface ReportQuery {
 	collection?: string;
+	grade?: "good" | "ok" | "poor";
 	limit: number;
 	cursor?: string;
 	sort?: "score" | "analyzedAt";
@@ -21,5 +22,6 @@ export interface ReportPage {
 export interface ReportStore {
 	get(entryId: string): Promise<SeoReport | null>;
 	put(report: SeoReport): Promise<void>;
+	delete(entryId: string): Promise<boolean>;
 	query(options: ReportQuery): Promise<ReportPage>;
 }

@@ -1,9 +1,12 @@
 import { z } from "astro/zod";
 import type { PluginContext } from "emdash";
 
-export const missingMetaInputSchema = z.object({});
+export const missingMetaInputSchema = z.object({
+	cursor: z.string().max(500).optional(),
+	limit: z.number().int().min(1).max(50).default(50),
+}).strict();
 
-export type MissingMetaInput = z.infer<typeof missingMetaInputSchema>;
+export interface MissingMetaInput { cursor?: string; limit?: number }
 
 export interface MissingMetaOutput {
 	collections: string[];
@@ -11,6 +14,8 @@ export interface MissingMetaOutput {
 	withoutTldr: number;
 	withoutMetaDescription: number;
 	withoutSeoTitle: number;
+	cursor?: string;
+	hasMore: boolean;
 	items: Array<{
 		collection: string;
 		id: string;
@@ -55,16 +60,15 @@ export async function missingMetaRouteHandler(
 		withoutTldr: 0,
 		withoutMetaDescription: 0,
 		withoutSeoTitle: 0,
+		hasMore: false,
 		items: [],
 	};
 
 	for (const collection of DEFAULT_COLLECTIONS) {
-		let cursor: string | undefined;
-		do {
 			const page = await ctx.content.list(collection, {
 				where: { status: "published" },
-				limit: PAGE_SIZE,
-				cursor,
+				limit: Math.min(PAGE_SIZE, _input.limit ?? PAGE_SIZE),
+				cursor: _input.cursor,
 			});
 			if (!page) break;
 
@@ -107,8 +111,8 @@ export async function missingMetaRouteHandler(
 				}
 			}
 
-			cursor = page.cursor ?? undefined;
-		} while (cursor);
+			result.cursor = page.cursor ?? undefined;
+			result.hasMore = page.hasMore;
 	}
 
 	ctx.log.info(

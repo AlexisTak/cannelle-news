@@ -44,7 +44,7 @@ export function createPlugin() {
 
 		storage: {
 			keywords: {
-				indexes: ["normalized", "targetId", "source", ["normalized", "weight"]],
+				indexes: ["normalized", "targetId", "targetCollection", "source", ["normalized", "weight"]],
 			},
 		},
 

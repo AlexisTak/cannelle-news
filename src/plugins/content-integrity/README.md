@@ -8,9 +8,9 @@ blocking publication.
 ## Capabilities
 
 - Reads posts content (`content:read`).
-- Detects candidates via single LSH query, compares them exactly.
+- Detects candidates through an indexed LSH lookup, then compares them exactly.
 - Persists findings in `ctx.storage.matches` (status / severity / passages).
-- Computes document frequency for boilerplate filtering during `rebuild`.
+- Rebuilds the fingerprint and LSH indexes in cursor-based batches.
 
 ## Not in phase 1
 
@@ -36,6 +36,6 @@ emdash({
 | `check`   | `content:read`     | One entry vs the corpus          |
 | `matches` | `content:read`     | Paginated findings               |
 | `match`   | `content:read`     | One finding with passages        |
-| `review`  | `content:write`    | Change finding status            |
+| `review`  | authenticated admin | Change finding status in plugin storage |
 | `rebuild` | `plugins:manage`   | Cursor-based reindex             |
 | `settings`| `plugins:manage`   | Read / write `IntegrityConfig`   |

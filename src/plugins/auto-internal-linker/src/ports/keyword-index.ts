@@ -5,6 +5,7 @@ export interface KeywordIndexStore {
 	replaceForTarget(targetId: string, keywords: IndexedKeyword[]): Promise<void>;
 	/** Supprime toutes les entrées d'un article, rend le nombre supprimé. */
 	purgeTarget(targetId: string): Promise<number>;
+	purgeCollectionPage(collection: string): Promise<{ deleted: number; hasMore: boolean }>;
 	/** Toutes les entrées, pour construire le trie. */
 	all(): Promise<IndexedKeyword[]>;
 	count(): Promise<number>;

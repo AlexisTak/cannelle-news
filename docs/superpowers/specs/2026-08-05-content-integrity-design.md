@@ -222,9 +222,12 @@ admin: {
   ],
   fieldWidgets: [
     {
+      // Phase 1 = widget inséré via fieldWidgets sans champ dans le schéma
+      // (cf. §7.3). Si l'approche échoue, fallback : ajouter un champ `json`
+      // optionnel `integrity_panel` sur `posts` et y attacher ce widget.
       name: "integrity",
       label: "Intégrité",
-      fieldTypes: ["json"],     // champ optionnel `integrity_panel` sur posts
+      fieldTypes: ["json"],
     },
   ],
 }

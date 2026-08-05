@@ -9,8 +9,13 @@
     "./admin": "./src/admin.tsx"
   },
   "peerDependencies": {
+    "@emdash-cms/admin": ">=0.30.0",
     "emdash": ">=0.30.0",
     "react": "^19.0.0",
-    "@emdash-cms/admin": "*"
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.0.0"
   }
 }

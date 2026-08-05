@@ -1,5 +1,6 @@
 ---
 import type { ResearchPaperBlock } from "../lib/types";
+import { serializeJsonLd } from "../lib/json-ld";
 
 interface Props {
   blocks: Array<{ _type: string }>;
@@ -31,4 +32,4 @@ const jsonLd = unique.map((p) => ({
 }));
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+<script type="application/ld+json" set:html={serializeJsonLd(jsonLd)} is:inline />

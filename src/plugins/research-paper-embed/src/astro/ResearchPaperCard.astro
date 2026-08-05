@@ -1,5 +1,6 @@
 ---
 import type { ResearchPaperBlock } from "../lib/types";
+import { safePaperHref } from "../lib/safe-href";
 
 interface Props {
   value: ResearchPaperBlock;
@@ -26,6 +27,8 @@ const abstractPreview = hasMetadata && value.abstract.length > 200
   : value.abstract;
 
 const badge = value.source === "arxiv" ? "arXiv" : value.source === "crossref" ? "DOI" : "Manual";
+const paperUrl = safePaperHref(value.url);
+const pdfUrl = safePaperHref(value.pdfUrl);
 ---
 
 <article class="paper-card">
@@ -37,13 +40,11 @@ const badge = value.source === "arxiv" ? "arXiv" : value.source === "crossref" ?
 	{
 		hasMetadata ? (
 			<h3 class="paper-card__title">
-				<a href={value.url} rel="noopener">
-					{value.title}
-				</a>
+				{paperUrl ? <a href={paperUrl} rel="noopener">{value.title}</a> : value.title}
 			</h3>
 		) : (
 			<p class="paper-card__fallback">
-				Métadonnées non récupérées. <a href={value.url} rel="noopener">Lien direct</a>.
+				Métadonnées non récupérées. {paperUrl && <a href={paperUrl} rel="noopener">Lien direct</a>}
 			</p>
 		)
 	}
@@ -65,14 +66,12 @@ const badge = value.source === "arxiv" ? "arXiv" : value.source === "crossref" ?
 	}
 
 	<footer class="paper-card__actions">
-		<a class="paper-card__button" href={value.url} rel="noopener">
-			Consulter l'étude
-		</a>
+		{paperUrl && <a class="paper-card__button" href={paperUrl} rel="noopener">Consulter l'étude</a>}
 		{
-			value.pdfUrl && (
+			pdfUrl && (
 				<a
 					class="paper-card__button paper-card__button--ghost"
-					href={value.pdfUrl}
+					href={pdfUrl}
 					rel="noopener"
 				>
 					PDF

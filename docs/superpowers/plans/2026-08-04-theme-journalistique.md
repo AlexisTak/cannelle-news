@@ -141,10 +141,7 @@ Fichier complet, à créer tel quel :
 	--color-rule: #dfdfdf;             /* filets décoratifs             */
 	--color-border-interactive: #8f8f8f; /* 3,2:1 — WCAG 1.4.11         */
 
-	/* Familles — les variables sont produites par l'API Fonts d'Astro */
-	--font-display: var(--font-display-fallback, Georgia, serif);
-	--font-body: var(--font-body-fallback, Georgia, serif);
-	--font-meta: var(--font-meta-fallback, system-ui, sans-serif);
+	/* Familles — injectées par <Font> dans Base.astro (seul écrivain) */
 
 	/* Échelle typographique */
 	--fs-display: clamp(2.25rem, 1.6rem + 3.2vw, 3.75rem);
@@ -1300,7 +1297,7 @@ git commit -m "feat(theme): composants de méta — surtitre, ligne de méta, si
 - Consumes: `Kicker`, `MetaLine` (tâche 5) ; `resolveKicker` (tâche 2) ; les tokens (tâche 1).
 - Produces:
   - `CardGrid` — `{ columns?: 1 | 2 | 3 | 4 }` + `<slot />`
-  - `ArticleCard` — `{ post: Post; variant?: "lead" | "standard" | "compact" | "list"; headingLevel?: 2 | 3 }`
+  - `ArticleCard` — `{ post: { id: string; data: Post }; variant?: "lead" | "standard" | "compact" | "list"; headingLevel?: 2 | 3 }`
 
 - [ ] **Step 1: Créer `src/components/CardGrid.astro`**
 
@@ -1370,7 +1367,7 @@ import MetaLine from "./MetaLine.astro";
 import { resolveKicker } from "../utils/format";
 
 interface Props {
-	post: Post & { id: string };
+	post: { id: string; data: Post };
 	variant?: "lead" | "standard" | "compact" | "list";
 	/**
 	 * Niveau de titre du titre de carte. La même carte apparaît sous un `h1`
@@ -1528,7 +1525,7 @@ git commit -m "feat(theme): grille à filets et carte d'article à quatre varian
 **Interfaces:**
 - Consumes: `Kicker`, `MetaLine`, `Byline` (tâche 5) ; `resolveKicker` (tâche 2).
 - Produces:
-  - `ArticleHeader` — `{ post: Post & { edit: Record<string, unknown> } }`
+  - `ArticleHeader` — `{ post: { id: string; data: Post; edit: Record<string, Record<string, unknown>> } }`
   - `Prose` — `<slot />` uniquement ; porte la grille à sorties de colonne et les styles éditoriaux du corps
 
 - [ ] **Step 1: Créer `src/components/ArticleHeader.astro`**
@@ -1543,7 +1540,7 @@ import Byline from "./Byline.astro";
 import { resolveKicker } from "../utils/format";
 
 interface Props {
-	post: Post & { edit: Record<string, Record<string, unknown>> };
+	post: { id: string; data: Post; edit: Record<string, Record<string, unknown>> };
 }
 
 const { post } = Astro.props;

@@ -4,6 +4,7 @@ import type { GlossaryTerm } from "../lib/types";
 const PAGE_SIZE = 100;
 
 interface StorageCollection {
+	get(id: string): Promise<unknown | null>;
 	putMany(items: Array<{ id: string; data: unknown }>): Promise<void>;
 	deleteMany(ids: string[]): Promise<number>;
 	count(): Promise<number>;
@@ -38,9 +39,8 @@ export function createGlossaryStore(ctx: PluginContext) {
 		},
 
 		async get(id: string): Promise<GlossaryTerm | null> {
-			const page = await collection.query({ where: { id }, limit: 1 });
-			const item = page.items[0];
-			return item ? (item.data as GlossaryTerm) : null;
+			const term = await collection.get(id);
+			return (term as GlossaryTerm | null) ?? null;
 		},
 
 		async findByTerm(term: string): Promise<GlossaryTerm | null> {

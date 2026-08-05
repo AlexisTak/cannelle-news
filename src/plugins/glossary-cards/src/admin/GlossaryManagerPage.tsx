@@ -186,6 +186,10 @@ export function GlossaryManagerPage() {
 			} satisfies SaveTermInput as unknown as Record<string, unknown>);
 
 			setTerms((prev) => [saved.term, ...prev.filter((t) => t.id !== saved.term.id)]);
+			let rehydrate: { done: boolean; collectionIndex?: number; cursor?: string } = { done: false };
+			while (!rehydrate.done) {
+				rehydrate = await apiFetch("terms/rehydrate", { termId: saved.term.id, collectionIndex: rehydrate.collectionIndex, cursor: rehydrate.cursor });
+			}
 			setEditingId(saved.term.id);
 			setDraft(toDraft(saved.term));
 			setNotice(`« ${saved.term.term} » enregistré.`);

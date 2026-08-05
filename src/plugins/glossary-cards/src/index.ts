@@ -10,6 +10,7 @@ import {
 	saveTermSchema,
 	termIdSchema,
 } from "./routes/terms";
+import { rehydrateTermRouteHandler } from "./routes/rehydrate";
 
 export const PLUGIN_ID = "glossary-cards";
 export const PLUGIN_VERSION = "0.1.0";
@@ -102,6 +103,10 @@ export function createPlugin(options: GlossaryCardsOptions = {}) {
 				input: termIdSchema,
 				handler: async (ctx) => deleteTermRouteHandler(ctx.input as { id: string }, ctx),
 			},
+			"terms/rehydrate": {
+				input: z.object({ termId: z.string().min(1).max(200), collectionIndex: z.number().int().min(0).optional(), cursor: z.string().max(500).optional() }).strict(),
+				handler: async (ctx) => rehydrateTermRouteHandler(ctx.input as { termId: string; collectionIndex?: number; cursor?: string }, ctx, collections),
+			},
 		},
 
 		hooks: {
@@ -121,11 +126,14 @@ export function createPlugin(options: GlossaryCardsOptions = {}) {
 					const body = event.content.content as PortableTextBlock[] | undefined;
 					if (!body?.length) return;
 
+					const { collectGlossaryMarks, hydrateGlossaryMarks } = await import("./lib/portable-text");
+					const marks = collectGlossaryMarks(body);
+					if (!marks.length) return;
 					const { createGlossaryStore } = await import("./store/glossary-store");
-					const terms = await createGlossaryStore(ctx).list();
+					const store = createGlossaryStore(ctx);
+					const terms = (await Promise.all([...new Set(marks.map((mark) => mark.termId))].map((id) => store.get(id)))).filter((term) => term !== null);
 					if (terms.length === 0) return;
 
-					const { hydrateGlossaryMarks } = await import("./lib/portable-text");
 					const hydrated = hydrateGlossaryMarks(body, terms);
 					if (JSON.stringify(hydrated) !== JSON.stringify(body)) {
 						return { ...event.content, content: hydrated };
