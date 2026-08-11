@@ -26,6 +26,7 @@ import CardGrid from "../../components/CardGrid.astro";
 import ArticleCard from "../../components/ArticleCard.astro";
 import Base from "../../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../../utils/site-identity";
+import { getPaywallGate } from "../../utils/paywall-gate";
 
 const slug = decodeSlug(Astro.params.slug);
 
@@ -57,6 +58,10 @@ const { entries: recent } = await getEmDashCollection("posts", {
 	orderBy: { published_at: "desc" },
 });
 const alsoRead = recent.filter((p) => p.id !== post.id).slice(0, 3);
+
+const customerId = Astro.cookies.get("cannelle_customer_id")?.value ?? "";
+const { blocked: paywallBlocked, message: paywallMessage, checkoutUrl: paywallCheckoutUrl } =
+	await getPaywallGate(Astro.url.origin, `/posts/${slug}`, customerId);
 ---
 
 <Base
@@ -76,21 +81,30 @@ const alsoRead = recent.filter((p) => p.id !== post.id).slice(0, 3);
 		<Prose>
 			<TldrBox bullets={(post.data as unknown as Record<string, unknown>).tldr} />
 
-			<PortableText
-				value={post.data.content}
-				components={{
-					types: { ...blockComponents, ...aiBlockComponents },
-					marks: glossaryMarkComponents,
-				}}
-			/>
+			{
+				paywallBlocked ? (
+					<div class="paywall-teaser">
+						<p>{paywallMessage || "Abonnez-vous pour poursuivre votre lecture."}</p>
+						{paywallCheckoutUrl && <a href={paywallCheckoutUrl}>Découvrir les offres</a>}
+					</div>
+				) : (
+					<PortableText
+						value={post.data.content}
+						components={{
+							types: { ...blockComponents, ...aiBlockComponents },
+							marks: glossaryMarkComponents,
+						}}
+					/>
+				)
+			}
 		</Prose>
 
 		<div class="article-footer">
 			<TagList tags={tags} />
 		</div>
 
-		<GlossaryJsonLd blocks={post.data.content ?? []} />
-		<ResearchPaperJsonLd blocks={post.data.content ?? []} />
+		<GlossaryJsonLd blocks={paywallBlocked ? [] : (post.data.content ?? [])} />
+		<ResearchPaperJsonLd blocks={paywallBlocked ? [] : (post.data.content ?? [])} />
 	</article>
 
 	{
@@ -116,6 +130,13 @@ const alsoRead = recent.filter((p) => p.id !== post.id).slice(0, 3);
 
 		.also-read {
 			max-width: var(--w-page);
+		}
+
+		.paywall-teaser {
+			padding: 1.5rem;
+			border: 1px solid var(--border, #ddd);
+			border-radius: 0.5rem;
+			text-align: center;
 		}
 	</style>
 </Base>

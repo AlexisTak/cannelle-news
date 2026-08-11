@@ -4,6 +4,7 @@ import { PortableText } from "emdash/ui";
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import { getPaywallGate } from "../utils/paywall-gate";
 
 const slug = decodeSlug(Astro.params.slug);
 
@@ -25,6 +26,10 @@ const seo = getSeoMeta(page, {
 	siteUrl: Astro.url.origin,
 	path: `/${slug}`,
 });
+
+const customerId = Astro.cookies.get("cannelle_customer_id")?.value ?? "";
+const { blocked: paywallBlocked, message: paywallMessage, checkoutUrl: paywallCheckoutUrl } =
+	await getPaywallGate(Astro.url.origin, `/${slug}`, customerId);
 ---
 
 <Base
@@ -41,7 +46,16 @@ const seo = getSeoMeta(page, {
 		</header>
 
 		<Prose>
-			<PortableText value={page.data.content} />
+			{
+				paywallBlocked ? (
+					<div class="paywall-teaser">
+						<p>{paywallMessage || "Abonnez-vous pour poursuivre votre lecture."}</p>
+						{paywallCheckoutUrl && <a href={paywallCheckoutUrl}>Découvrir les offres</a>}
+					</div>
+				) : (
+					<PortableText value={page.data.content} />
+				)
+			}
 		</Prose>
 	</article>
 
@@ -55,6 +69,13 @@ const seo = getSeoMeta(page, {
 		.page__header h1 {
 			font-size: var(--fs-h1);
 			letter-spacing: -0.02em;
+		}
+
+		.paywall-teaser {
+			padding: 1.5rem;
+			border: 1px solid var(--border, #ddd);
+			border-radius: 0.5rem;
+			text-align: center;
 		}
 	</style>
 </Base>
