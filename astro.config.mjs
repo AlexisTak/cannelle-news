@@ -14,6 +14,7 @@ import { cannelleFactCheckPlugin } from "./src/plugins/fact-check/src/index.ts";
 import { glossaryCardsPlugin } from "./src/plugins/glossary-cards/src/index.ts";
 import { cannelleMediaPlugin } from "./src/plugins/media/src/index.ts";
 import { cannelleNewsletterPlugin } from "./src/plugins/newsletter/src/index.ts";
+import { cannelleNotesPlugin } from "./src/plugins/notes/src/index.ts";
 import { cannellePaywallPlugin } from "./src/plugins/paywall/src/index.ts";
 import { researchPaperEmbedPlugin } from "./src/plugins/research-paper-embed/src/index.ts";
 import { seoProPlugin } from "./src/plugins/seo-pro/src/index.ts";
@@ -71,6 +72,7 @@ export default defineConfig({
 				cannelleMediaPlugin(),
 				cannelleFactCheckPlugin(),
 				cannellePaywallPlugin(),
+				cannelleNotesPlugin(),
 				glossaryCardsPlugin(),
 				cannelleNewsletterPlugin(),
 				// `allowedHosts` est figé à la construction du contexte : l'hôte
@@ -94,6 +96,7 @@ export default defineConfig({
 				"@cannelle/plugin-paywall",
 				"@cannelle/plugin-glossary-cards",
 				"@cannelle/plugin-newsletter",
+				"@cannelle/plugin-notes",
 				"@cannelle/plugin-glossary-cards/astro",
 				"@cannelle/plugin-research-paper-embed",
 				"@cannelle/plugin-research-paper-embed/astro",
@@ -113,6 +116,7 @@ export default defineConfig({
 				"@cannelle/plugin-paywall",
 				"@cannelle/plugin-glossary-cards",
 				"@cannelle/plugin-newsletter",
+				"@cannelle/plugin-notes",
 				"@cannelle/plugin-research-paper-embed",
 				"@cannelle/plugin-seo-pro",
 			],
