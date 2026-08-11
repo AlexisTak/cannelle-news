@@ -3,11 +3,22 @@
 	"name": "my-emdash-site",
 	"main": "./src/worker.ts",
 	"compatibility_date": "2026-02-24",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "my-emdash-site",
+			"migrations_dir": "../../migrations",
+			"database_id": "d987a390-6db3-41c1-a7a6-9ebf4802e532",
+		},
+		{
+			"binding": "emdash_db",
+			"database_name": "emdash-db",
+			"database_id": "3b740dac-8b23-4018-82a2-b6f45a856a82",
+			"remote": true,
+			"migrations_dir": "../../migrations"
 		},
 	],
 	"r2_buckets": [
@@ -15,15 +26,27 @@
 			"binding": "MEDIA",
 			"bucket_name": "my-emdash-media",
 		},
-	],
-	// Worker Loader for plugin sandboxing
-	"worker_loaders": [
 		{
-			"binding": "LOADER",
+			"bucket_name": "emdash-media",
+			"binding": "emdash_media",
+			"remote": true
 		},
 	],
 	// Drives scheduled publishing, plugin cron, and maintenance (see src/worker.ts)
 	"triggers": {
-		"crons": ["* * * * *"],
+		"crons": [
+			"* * * * *"
+		],
 	},
+	"kv_namespaces": [
+		{
+			"binding": "EMDASH_SESSIONS",
+			"id": "88c16706d16149029d4d4e2bc6e74625",
+			"remote": true
+		},
+		{
+			"binding": "SESSION",
+			"id": "b0cfd810b33849b293d3f5908344259a"
+		}
+	],
 }
