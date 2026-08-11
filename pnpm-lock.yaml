@@ -44,6 +44,9 @@ importers:
       '@cannelle/plugin-newsletter':
         specifier: workspace:*
         version: link:src/plugins/newsletter
+      '@cannelle/plugin-notes':
+        specifier: workspace:*
+        version: link:src/plugins/notes
       '@cannelle/plugin-paywall':
         specifier: workspace:*
         version: link:src/plugins/paywall
