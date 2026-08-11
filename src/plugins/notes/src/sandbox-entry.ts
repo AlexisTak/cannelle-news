@@ -1,7 +1,7 @@
 import type { PluginContext, SandboxedPlugin, SandboxedRouteContext } from "emdash/plugin";
 import { z } from "zod";
 import { blocks, elements, type BlockInteraction, type BlockResponse } from "@emdash-cms/blocks/server";
-import { sortNotes, type Note } from "./domain";
+import { filterByStatus, sortNotes, type Note } from "./domain";
 
 interface Collection<T> {
 	get(id: string): Promise<T | null>;
@@ -26,9 +26,15 @@ const updateSchema = z.object({
 	assigneeId: z.string().nullable().optional(),
 });
 
-async function notesRoute(_routeCtx: SandboxedRouteContext, ctx: PluginContext) {
+const notesInputSchema = z.object({ status: z.enum(["todo", "done"]).optional() });
+
+async function notesRoute(routeCtx: SandboxedRouteContext, ctx: PluginContext) {
+	const parsed = notesInputSchema.safeParse(routeCtx.input);
+	if (!parsed.success) throw new Response("Invalid input", { status: 400 });
 	const result = await store(ctx).notes.query({ limit: 200 });
-	return { notes: sortNotes(result.items.map((x) => x.data)) };
+	const sorted = sortNotes(result.items.map((x) => x.data));
+	const notes = parsed.data.status ? filterByStatus(sorted, parsed.data.status) : sorted;
+	return { notes };
 }
 
 async function createRoute(routeCtx: SandboxedRouteContext, ctx: PluginContext) {
@@ -108,7 +114,9 @@ async function usersToOptions(ctx: PluginContext) {
 function noteBlocks(note: Note) {
 	const meta = note.assigneeName ? `Assigné à ${note.assigneeName} — par ${note.authorName}` : `Par ${note.authorName}`;
 	return [
-		blocks.section(`**${note.title}**\n${note.body}\n_${meta}_`),
+		blocks.section(note.title),
+		blocks.section(note.body),
+		blocks.context(meta),
 		blocks.actions([
 			elements.button(note.status === "todo" ? "mark_done" : "mark_todo", note.status === "todo" ? "Marquer fait" : "Marquer à faire", { value: note.id }),
 			elements.button("toggle_pin", note.pinned ? "Désépingler" : "Épingler", { value: note.id }),
@@ -124,8 +132,8 @@ function noteBlocks(note: Note) {
 async function dashboard(ctx: PluginContext): Promise<BlockResponse> {
 	const result = await store(ctx).notes.query({ limit: 200 });
 	const notes = sortNotes(result.items.map((x) => x.data));
-	const todo = notes.filter((n) => n.status === "todo");
-	const done = notes.filter((n) => n.status === "done");
+	const todo = filterByStatus(notes, "todo");
+	const done = filterByStatus(notes, "done");
 	const userOptions = await usersToOptions(ctx);
 	return {
 		blocks: [
@@ -141,7 +149,7 @@ async function dashboard(ctx: PluginContext): Promise<BlockResponse> {
 				fields: [
 					elements.textInput("title", "Titre"),
 					elements.textInput("body", "Texte", { multiline: true }),
-					elements.select("authorId", "Auteur", userOptions),
+					elements.select("authorId", "Auteur", userOptions, { initialValue: userOptions[0]?.value }),
 					elements.select("assigneeId", "Assigné à", [{ label: "— Personne —", value: "" }, ...userOptions]),
 				],
 				submit: { label: "Créer la note", actionId: "create_note" },
@@ -157,11 +165,12 @@ async function dashboard(ctx: PluginContext): Promise<BlockResponse> {
 export default {
 	hooks: {},
 	routes: {
-		notes: { permission: "plugins:read", input: z.unknown(), handler: notesRoute },
-		create: { input: z.unknown(), handler: createRoute },
-		update: { input: z.unknown(), handler: updateRoute },
-		delete: { input: z.unknown(), handler: deleteRoute },
+		notes: { permission: "plugins:read", input: notesInputSchema, handler: notesRoute },
+		create: { permission: "plugins:manage", input: z.unknown(), handler: createRoute },
+		update: { permission: "plugins:manage", input: z.unknown(), handler: updateRoute },
+		delete: { permission: "plugins:manage", input: z.unknown(), handler: deleteRoute },
 		admin: {
+			permission: "plugins:manage",
 			input: z.unknown(),
 			handler: async (routeCtx, ctx) => {
 				const i = routeCtx.input as BlockInteraction;
