@@ -7,7 +7,7 @@ export interface AdminTool {
 }
 
 export interface AdminCategory {
-	id: "editorial" | "audience" | "revenue" | "quality";
+	id: "editorial" | "audience" | "revenue" | "quality" | "team";
 	name: string;
 	description: string;
 	tools: AdminTool[];
@@ -55,6 +55,14 @@ export const ADMIN_CATEGORIES: AdminCategory[] = [
 			{ id: "seo", name: "SEO Pro", description: "Audits SEO et génération de métadonnées.", page: pluginPage("seo-pro", "/dashboard"), settings: pluginPage("seo-pro", "/settings") },
 			{ id: "links", name: "Maillage interne", description: "Suggestions, reconstruction et audit des liens.", page: pluginPage("auto-internal-linker", "/audit"), settings: pluginPage("auto-internal-linker", "/settings") },
 			{ id: "integrity", name: "Intégrité du contenu", description: "Détection de similarités et contrôle éditorial.", page: pluginPage("content-integrity", "/integrity") },
+		],
+	},
+	{
+		id: "team",
+		name: "Équipe",
+		description: "Coordination et suivi interne.",
+		tools: [
+			{ id: "notes", name: "Notes", description: "Notes d’équipe, statut et assignation.", page: pluginPage("cannelle-notes", "/notes") },
 		],
 	},
 ];
