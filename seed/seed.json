@@ -2,13 +2,13 @@
 	"$schema": "https://emdashcms.com/seed.schema.json",
 	"version": "1",
 	"meta": {
-		"name": "Starter",
-		"description": "A minimal EmDash starter with posts and pages",
-		"author": "EmDash"
+		"name": "Cannelle News",
+		"description": "Plateforme de journalisme d'investigation dédiée aux arnaques du web, aux dérives numériques et à l'IA",
+		"author": "Cannelle News"
 	},
 	"settings": {
-		"title": "My Site",
-		"tagline": "Built with EmDash"
+		"title": "Cannelle News",
+		"tagline": "Journalisme d'investigation sur les arnaques du web, les dérives numériques et l'IA"
 	},
 	"collections": [
 		{
@@ -220,7 +220,7 @@
 				"slug": "about",
 				"status": "published",
 				"data": {
-					"title": "About",
+					"title": "À propos",
 					"content": [
 						{
 							"_type": "block",
@@ -228,7 +228,7 @@
 							"children": [
 								{
 									"_type": "span",
-									"text": "This is the about page. Edit it in the admin panel or replace this template with your own design.",
+									"text": "Cannelle News est une plateforme de journalisme d'investigation ouverte aux journalistes indépendants. Nous enquêtons sur les arnaques du web, les dérives numériques et les usages problématiques de l'intelligence artificielle.",
 									"_key": "k1"
 								}
 							],
