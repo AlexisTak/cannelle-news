@@ -213,9 +213,9 @@ const {
 	.cannelle-form label { font-family: var(--font-meta, sans-serif); font-weight: 600; }
 	.cannelle-form input:not([type="checkbox"]), .cannelle-form textarea, .cannelle-form select { width: 100%; padding: 0.75rem; border: 1px solid var(--color-rule, #bbb); background: var(--color-surface, #fff); color: inherit; font: inherit; }
 	.cannelle-form input:focus-visible, .cannelle-form textarea:focus-visible, .cannelle-form select:focus-visible, .cannelle-form button:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
-	.cannelle-form__required, .cannelle-form__error, .cannelle-form__status--error { color: #a32121; }
+	.cannelle-form__required, .cannelle-form__error, .cannelle-form__status--error { color: var(--color-error, #a32121); }
 	.cannelle-form__error, .cannelle-form__status { margin: 0; font-family: var(--font-meta, sans-serif); font-size: 0.9rem; }
-	.cannelle-form__status--success { color: #176b3a; }
+	.cannelle-form__status--success { color: var(--color-success, #176b3a); }
 	.cannelle-form__submit { justify-self: start; padding: 0.75rem 1.25rem; border: 0; background: var(--color-ink, #111); color: var(--color-surface, #fff); font-family: var(--font-meta, sans-serif); font-weight: 700; cursor: pointer; }
 	.cannelle-form__submit:disabled { cursor: wait; opacity: 0.6; }
 	.cannelle-form__honeypot { position: absolute !important; inline-size: 1px !important; block-size: 1px !important; overflow: hidden !important; clip-path: inset(50%) !important; }
