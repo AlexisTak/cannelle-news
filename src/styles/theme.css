@@ -21,6 +21,8 @@
 	--color-surface-alt: #f7f7f7;
 	--color-rule: #dfdfdf;             /* filets décoratifs             */
 	--color-border-interactive: #8f8f8f; /* 3,2:1 — WCAG 1.4.11         */
+	--color-error: #a32121;            /*  7,5:1 — validation de formulaire */
+	--color-success: #176b3a;          /*  6,6:1 — validation de formulaire */
 
 	/* Familles — injectées par <Font> dans Base.astro */
 
@@ -61,6 +63,30 @@
 
 	/* Aucun arrondi : c'est ce qui sépare un thème de presse d'un thème SaaS */
 	--radius: 0;
+
+	/* Le navigateur adapte scrollbar, champs de formulaire, etc. au thème
+	   système même là où on ne fixe pas nous-même la couleur. */
+	color-scheme: light dark;
+}
+
+/* --- Mode sombre — suit la préférence système, pas de bascule manuelle --- */
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* Couleurs — ratios de contraste calculés sur fond #121212 */
+		--color-ink: #e8e6e3;              /* 15,0:1 — corps et titres      */
+		--color-ink-soft: #c9c5c0;         /* 10,9:1 — chapeau              */
+		--color-ink-muted: #9d9893;        /*  6,6:1 — méta, légendes  (AA) */
+		--color-accent: #8fb4d4;           /*  8,6:1 — liens, ancien --color-accent-light */
+		--color-accent-hover: #b3cee3;     /* 11,5:1 */
+		--color-accent-light: #326891;     /* accent clair d'origine, réutilisé sur fond clair (infobulle) */
+		--color-surface: #121212;
+		--color-surface-alt: #1b1a19;
+		--color-rule: #333230;             /* filets décoratifs             */
+		--color-border-interactive: #767676; /*  4,1:1 — WCAG 1.4.11        */
+		--color-error: #e57373;            /*  6,3:1 — validation de formulaire */
+		--color-success: #6fcf97;          /*  9,9:1 — validation de formulaire */
+	}
 }
 
 /* --- Reset éditorial ---------------------------------------------------- */
